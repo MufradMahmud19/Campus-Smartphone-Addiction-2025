@@ -70,8 +70,8 @@ The frontend is built using React and provides the user interface for the wizard
 
 1. Start the backend server:
    ```
-   cd backend/app
-   python main.py
+   cd backend
+   uvicorn app.main:app --reload
    ```
 
 2. Start the frontend development server:

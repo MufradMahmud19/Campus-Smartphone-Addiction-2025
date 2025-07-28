@@ -1,4 +1,4 @@
-# smartphone-wizard-app/smartphone-wizard-app/README.md
+# Campus-Smartphone-Addiction-2025/README.md
 
 # Smartphone Wizard App
 

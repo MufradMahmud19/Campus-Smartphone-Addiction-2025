@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Text
+from sqlalchemy import Column, Integer, String, Text, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
 from .database import Base
@@ -16,6 +17,10 @@ class UserResponse(Base):
     question_id = Column(Integer, index=True)
     answer = Column(Integer)
     chat_history = Column(Text)
+    usercode = Column(String, ForeignKey("users.usercode"))  # FK references User.usercode
+
+    # Relationship back to User:
+    user = relationship("User", back_populates="responses")
 
 class UserChat(Base):
     __tablename__ = "user_chats"
@@ -35,3 +40,6 @@ class User(Base):
     education = Column(String)
     field = Column(String)
     yearsOfStudy = Column(String)
+
+    # One-to-many relationship:
+    responses = relationship("UserResponse", back_populates="user")

@@ -7,10 +7,14 @@ export function WizardStep({ question, value, onChange, conversation, onSendChat
       <div style={{ fontSize: 20, marginBottom: 16 }}>{question}</div>
       {!showChat && (
         <div style={{ marginBottom: 16 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 12 }}>
+            <span>1 - Strongly Disagree</span>
+            <span>6 - Strongly Agree</span>
+          </div>
           <input
             type="range"
             min={1}
-            max={10}
+            max={6}
             value={value}
             onChange={e => onChange(Number(e.target.value))}
             style={{ width: "100%" }}

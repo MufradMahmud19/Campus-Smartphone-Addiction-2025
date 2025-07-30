@@ -1,6 +1,7 @@
+
 import random
 import string
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from .database import engine, get_db
@@ -21,6 +22,20 @@ models.Base.metadata.create_all(bind=engine)
 def generate_usercode(length=8):
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
 
+@app.get("/question_answers/{question_id}", response_model=list[schemas.UserResponseOut])
+def get_question_answers(question_id: int, db: Session = Depends(get_db)):
+    try:
+        answers = db.query(models.UserResponse).filter(models.UserResponse.question_id == question_id).all()
+        print(f"[DEBUG] Fetching answers for question_id: {question_id}")
+        print(f"[DEBUG] Raw answers from DB: {answers}")
+        if not answers:
+            print(f"[DEBUG] No answers found for question_id {question_id}")
+            return []
+        return answers
+    except Exception as e:
+        print(f"[ERROR] Exception in get_question_answers: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error.")
+
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Smartphone Usage Wizard API"}
@@ -28,7 +43,7 @@ def read_root():
 @app.post("/answers", response_model=schemas.UserResponseOut)
 def create_user_response(response: schemas.UserResponseCreate, db: Session = Depends(get_db)):
     db_response = models.UserResponse(
-        question=str(response.question_id),  # or use actual question text if available
+        question_id=response.question_id,
         answer=response.answer,
         chat_history=""  # You can update this if you want to store chat
     )

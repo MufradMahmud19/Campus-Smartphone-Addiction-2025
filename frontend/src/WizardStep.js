@@ -1,7 +1,46 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import LLMChatBox from "./components/LLMChatBox";
+import AnswerDistributionChart from "./components/AnswerDistributionChart";
 
-export function WizardStep({ question, value, onChange, conversation, onSendChat, showChat, onSubmit, onBack, onNext, isLastStep, isSubmitted }) {
+export function WizardStep({ question, value, onChange, conversation, onSendChat, showChat, onSubmit, onBack, onNext, isLastStep, isSubmitted, question_id }) {
+  const [showChart, setShowChart] = useState(false);
+  const [chartData, setChartData] = useState([]);
+  const [showChatBox, setShowChatBox] = useState(false);
+  useEffect(() => {
+    // Reset chart and chat if answer changes or question changes
+    setShowChart(false);
+    setShowChatBox(false);
+    setChartData([]);
+  }, [value, question_id]);
+
+  // When isSubmitted becomes true, fetch chart data
+  useEffect(() => {
+    if (isSubmitted && question_id) {
+      fetch(`http://localhost:8000/question_answers/${question_id}`)
+        .then(res => res.json())
+        .then(data => {
+          // Defensive: ensure data is an array
+          let arr = [];
+          if (Array.isArray(data)) {
+            arr = data.map(d => d.answer);
+          } else if (data && typeof data === 'object' && 'answer' in data) {
+            arr = [data.answer];
+          } else {
+            arr = [];
+          }
+          setChartData(arr);
+          setShowChart(true);
+          // Show chat after a short delay (e.g., 1s)
+          setTimeout(() => setShowChatBox(true), 1000);
+        })
+        .catch(() => {
+          setChartData([]);
+          setShowChart(true);
+          setTimeout(() => setShowChatBox(true), 1000);
+        });
+    }
+  }, [isSubmitted, question_id]);
+
   return (
     <div style={{ 
       padding: 20, 
@@ -13,7 +52,6 @@ export function WizardStep({ question, value, onChange, conversation, onSendChat
       margin: "0 auto"
     }}>
       <div style={{ fontSize: 20, marginBottom: 20, fontWeight: "bold", color: "#333" }}>{question}</div>
-      
       {/* Question section - always visible */}
       <div style={{ marginBottom: 20 }}>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12, fontSize: 14, color: "#666" }}>
@@ -37,7 +75,6 @@ export function WizardStep({ question, value, onChange, conversation, onSendChat
         <div style={{ textAlign: "center", marginTop: 12, fontSize: 16 }}>
           Answer: <b style={{ color: "#4CAF50" }}>{value}</b>
         </div>
-        
         {/* Submit button - only show if not submitted */}
         {!isSubmitted && (
           <div style={{ textAlign: "center", marginTop: 20 }}>
@@ -69,14 +106,16 @@ export function WizardStep({ question, value, onChange, conversation, onSendChat
           </div>
         )}
       </div>
-      
-      {/* Chat section - only show if submitted */}
-      {isSubmitted && (
+      {/* Chart section - show after submit, before chat */}
+      {isSubmitted && showChart && (
+        <AnswerDistributionChart answers={chartData} userAnswer={value} />
+      )}
+      {/* Chat section - only show if submitted and after chart */}
+      {isSubmitted && showChatBox && (
         <div style={{ marginTop: 20 }}>
           <LLMChatBox conversation={conversation} onSend={onSendChat} />
         </div>
       )}
-      
       {/* Navigation buttons */}
       <div style={{ display: "flex", justifyContent: "space-between", marginTop: 20 }}>
         <button 
@@ -101,7 +140,6 @@ export function WizardStep({ question, value, onChange, conversation, onSendChat
         >
           ←
         </button>
-        
         {!isLastStep && (
           <button 
             onClick={onNext}

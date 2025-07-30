@@ -860,6 +860,7 @@ export default function App() {
         onNext={nextStep}
         isLastStep={step === steps.length - 1}
         isSubmitted={submittedQuestions.has(current.qIndex)}
+        question_id={current.question_id}
       />
       {step === steps.length - 1 && submittedQuestions.has(current.qIndex) && (
         <div style={{ marginTop: 20 }}>

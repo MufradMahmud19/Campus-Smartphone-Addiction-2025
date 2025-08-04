@@ -509,7 +509,6 @@ function DemographicsPage({ onSubmit, onBack, usercode }) {
     yearsOfStudy: ""
   });
   const [errors, setErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -537,15 +536,9 @@ function DemographicsPage({ onSubmit, onBack, usercode }) {
       return;
     }
     
-    setIsSubmitting(true);
-    axios.post("http://localhost:8000/register_user", form)
-      .then(res => {
-        onSubmit(res.data.usercode);
-      })
-      .catch(error => {
-        console.error("Error registering user:", error);
-        setIsSubmitting(false);
-      });
+    // Just pass the form data to the parent component
+    // Don't register the user here - that will happen later
+    onSubmit(form);
   }
 
   return (
@@ -613,7 +606,7 @@ function DemographicsPage({ onSubmit, onBack, usercode }) {
           <label style={{ display: "block", marginBottom: 8, fontWeight: "bold" }}>What is your highest completed education level?</label>
           <input 
             name="education" 
-            placeholder="e.g., High School, Bachelor's, Master's, PhD" 
+            placeholder="e.g., Bachelor's, Master's, PhD" 
             value={form.education} 
             onChange={handleChange}
             style={{ 
@@ -666,7 +659,6 @@ function DemographicsPage({ onSubmit, onBack, usercode }) {
         <div style={{ display: "flex", gap: "15px", justifyContent: "center" }}>
           <button 
             onClick={onBack} 
-            disabled={isSubmitting}
             style={{ 
               padding: "12px 24px", 
               fontSize: "16px",
@@ -674,12 +666,12 @@ function DemographicsPage({ onSubmit, onBack, usercode }) {
               color: "#333",
               border: "none",
               borderRadius: "8px",
-              cursor: isSubmitting ? "not-allowed" : "pointer",
+              cursor: "pointer",
               transition: "all 0.3s ease",
               fontWeight: "bold"
             }}
             onMouseOver={(e) => {
-              if (!isSubmitting) e.target.style.backgroundColor = "#e0e0e0";
+              e.target.style.backgroundColor = "#e0e0e0";
             }}
             onMouseOut={(e) => {
               e.target.style.backgroundColor = "#f0f0f0";
@@ -689,31 +681,28 @@ function DemographicsPage({ onSubmit, onBack, usercode }) {
           </button>
           <button 
             onClick={handleSubmit} 
-            disabled={isSubmitting}
             style={{ 
               padding: "12px 24px", 
               fontSize: "16px", 
-              backgroundColor: isSubmitting ? "#cccccc" : "#4CAF50", 
+              backgroundColor: "#4CAF50", 
               color: "white", 
               border: "none", 
               borderRadius: "8px",
-              cursor: isSubmitting ? "not-allowed" : "pointer",
-              boxShadow: isSubmitting ? "none" : "0 4px 15px rgba(76, 175, 80, 0.3)",
+              cursor: "pointer",
+              boxShadow: "0 4px 15px rgba(76, 175, 80, 0.3)",
               transition: "all 0.3s ease",
               fontWeight: "bold"
             }}
             onMouseOver={(e) => {
-              if (!isSubmitting) {
-                e.target.style.transform = "translateY(-2px)";
-                e.target.style.boxShadow = "0 6px 20px rgba(76, 175, 80, 0.4)";
-              }
+              e.target.style.transform = "translateY(-2px)";
+              e.target.style.boxShadow = "0 6px 20px rgba(76, 175, 80, 0.4)";
             }}
             onMouseOut={(e) => {
               e.target.style.transform = "translateY(0)";
-              e.target.style.boxShadow = isSubmitting ? "none" : "0 4px 15px rgba(76, 175, 80, 0.3)";
+              e.target.style.boxShadow = "0 4px 15px rgba(76, 175, 80, 0.3)";
             }}
           >
-            {isSubmitting ? "Submitting..." : "Continue"}
+            Continue
           </button>
         </div>
       </div>
@@ -903,12 +892,15 @@ export default function App() {
       onContinue={async () => {
         if (pendingDemographics) {
           try {
+            console.log("Registering user with data:", pendingDemographics);
             const res = await axios.post("http://localhost:8000/register_user", pendingDemographics);
+            console.log("Registration response:", res.data);
             setUsercode(res.data.usercode);
             setPendingDemographics(null);
             setPage(4);
           } catch (error) {
-            alert("Error registering user. Please try again.");
+            console.error("Registration error:", error.response?.data || error.message);
+            alert(`Error registering user: ${error.response?.data?.detail || error.message || "Please try again."}`);
           }
         } else {
           setPage(4);
@@ -934,8 +926,20 @@ export default function App() {
     steps.push({ type: "question", question: q.text, qIndex: i, question_id: q.id, questionNumber: i + 1 });
   });
 
-  const current = steps[step];
+  // Check if we have questions and valid step
+  if (steps.length === 0) {
+    return <div>No questions available. Please try again later.</div>;
+  }
+
+  // Ensure step is within valid range
+  const validStep = Math.max(0, Math.min(step, steps.length - 1));
+  const current = steps[validStep];
   const currentQuestionNumber = current ? current.questionNumber : 1;
+  
+  // Update step if it was out of bounds
+  if (validStep !== step) {
+    setStep(validStep);
+  }
   
   // Progress bar component
   const ProgressBar = ({ current, total }) => {
@@ -983,33 +987,35 @@ export default function App() {
         {usercode && <div style={{ margin: "16px 0", fontWeight: "bold" }}>Your User Code: {usercode}</div>}
         </div>
         <ProgressBar current={currentQuestionNumber} total={10} />
-        <WizardStep
-          key={`question-${current.qIndex}-${submittedQuestions.has(current.qIndex)}`}
-          question={current.question}
-          value={answers[current.qIndex]}
-          onChange={handleAnswerChange}
-          conversation={chats[current.qIndex] || []}
-          onSendChat={handleSendChat}
-          showChat={false}
-          onSubmit={() => {
-            // Mark this question as submitted
-            setSubmittedQuestions(prev => new Set([...prev, current.qIndex]));
-            // Show feedback after submitting
-            setChats(current => 
-              current.map((c, i) => 
-                i === current.qIndex 
-                  ? [{ role: "AI", text: `Thank you for your answer! Your response was ${answers[current.qIndex]}/6. Is there anything you'd like to discuss about this question?` }]
-                  : c
-              )
-            );
-          }}
-          onBack={prevStep}
-          onNext={nextStep}
-          isLastStep={step === steps.length - 1}
-          isSubmitted={submittedQuestions.has(current.qIndex)}
-          question_id={current.question_id}
-        />
-        {step === steps.length - 1 && submittedQuestions.has(current.qIndex) && (
+        {current && (
+          <WizardStep
+            key={`question-${current.qIndex}-${submittedQuestions.has(current.qIndex)}`}
+            question={current.question}
+            value={answers[current.qIndex]}
+            onChange={handleAnswerChange}
+            conversation={chats[current.qIndex] || []}
+            onSendChat={handleSendChat}
+            showChat={false}
+            onSubmit={() => {
+              // Mark this question as submitted
+              setSubmittedQuestions(prev => new Set([...prev, current.qIndex]));
+              // Show feedback after submitting
+              setChats(current => 
+                current.map((c, i) => 
+                  i === current.qIndex 
+                    ? [{ role: "AI", text: `Thank you for your answer! Your response was ${answers[current.qIndex]}/6. Is there anything you'd like to discuss about this question?` }]
+                    : c
+                )
+              );
+            }}
+            onBack={prevStep}
+            onNext={nextStep}
+            isLastStep={step === steps.length - 1}
+            isSubmitted={submittedQuestions.has(current.qIndex)}
+            question_id={current.question_id}
+          />
+        )}
+        {current && step === steps.length - 1 && submittedQuestions.has(current.qIndex) && (
           <div style={{ marginTop: 20 }}>
             <b>All answers:</b>
             <pre>{JSON.stringify(createAnswersDictionary(), null, 2)}</pre>

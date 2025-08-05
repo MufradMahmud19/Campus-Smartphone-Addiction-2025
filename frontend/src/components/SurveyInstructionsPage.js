@@ -63,7 +63,7 @@ export default function SurveyInstructionsPage({ onContinue, onBack }) {
         </div>
         <div style={{marginBottom: 32}}>
           <span style={{fontWeight: 600}}>Purpose of the Study:</span>
-          <span> This study aims to estimate whether you may be prone to smartphone addiction based on your responses.</span>
+          <span> This study aims to help users reflect on their smartphone usage habits and determine whether their behavior may indicate signs of problematic use or smartphone addiction based on their responses.</span>
         </div>
         <div style={{display: "flex", justifyContent: "space-between", marginTop: 30, flexWrap: "wrap", gap: 12}}>
           <button onClick={onBack} style={{padding: "12px 32px", fontSize: "clamp(1rem, 2vw, 1.1rem)", borderRadius: 8, border: "none", background: "#bbb", color: "#fff", cursor: "pointer", fontWeight: 600, boxShadow: "0 2px 8px #e3f2fd", flex: 1, minWidth: 120, maxWidth: 200}}>Back</button>

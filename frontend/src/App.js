@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { WizardStep } from "./WizardStep";
 import SurveyInstructionsPage from "./components/SurveyInstructionsPage";
+import HelpModal from "./components/HelpModal";
 
 // Add global style for body background and improved card/header separation
 if (typeof window !== 'undefined') {
@@ -138,7 +139,7 @@ function FrontPage({ onNext }) {
               boxShadow: "0 8px 25px rgba(0,0,0,0.15)"
             }} 
           />
-          <h3 style={{ color: "#333", marginBottom: "30px" }}>This platform supports ongoing study.</h3>
+          <h3 style={{ color: "#333", marginBottom: "30px" }}>This platform supports an ongoing study.</h3>
         </div>
         <div style={{ textAlign: "right", marginTop: "40px" }}>
           <button 
@@ -177,6 +178,7 @@ function FrontPage({ onNext }) {
 function DescriptionPage({ onNext, onBack, usercode }) {
   const [showConsent, setShowConsent] = useState(false);
   const [consentGiven, setConsentGiven] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   const handleProceed = () => {
     if (consentGiven) {
@@ -195,32 +197,80 @@ function DescriptionPage({ onNext, onBack, usercode }) {
 
   return (
     <div className="responsive-page">
-      <div className="responsive-header">
+      <div className="responsive-header" style={{ display: "flex", alignItems: "center", paddingRight: 16 }}>
         <HomeLogo onHome={() => onNext(0)} />
+        <div style={{ flex: 1 }} />
+        <button
+          aria-label="Show help"
+          onClick={() => setShowHelp(true)}
+          style={{
+            background: "#e3f2fd",
+            border: "none",
+            borderRadius: "50%",
+            width: 38,
+            height: 38,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 22,
+            color: "#1976d2",
+            cursor: "pointer",
+            boxShadow: "0 2px 8px #e3f2fd"
+          }}
+        >
+          ?
+        </button>
+        <HelpModal open={showHelp} onClose={() => setShowHelp(false)}>
+          <h2 style={{textAlign: "center", color: "#1976d2", marginBottom: 12}}>About the System</h2>
+          <h3 style={{textAlign: "center", marginTop: 0, color: "#333"}}>Smartphone Wizard</h3>
+          <p>This system is created to explore the relationship between smartphone use and academic, emotional, and behavioral patterns among students in a post-COVID university environment. This study will help identify patterns of smartphone overuse or potential addiction, offering insights into students’ wellbeing, academic engagement, and digital habits. The results can guide the development of digital wellbeing tools and inform future interventions for smartphone-related behavioral challenges.</p>
+          <h4 style={{marginTop: 18, color: "#1976d2"}}>Purpose of the System</h4>
+          <p>The system is built to help users reflect on their smartphone usage habits and identify whether their behavior may be linked to signs of problematic use or smartphone addiction.</p>
+          <h4 style={{marginTop: 18, color: "#1976d2"}}>How It Works</h4>
+          <ul style={{marginLeft: 18, marginBottom: 0}}>
+            <li><b>Answer Structured Questions:</b> Users are guided through a wizard-style interface where they respond to a series of smartphone-related behavioral questions.</li>
+            <li><b>Instant Feedback Mechanism:</b> After each response, a feedback comment appears to reflect the potential behavioral implications of the selected answer.</li>
+            <li><b>Addiction Risk Classification:</b> At the end of the survey, users receive a summary based on their cumulative score that indicates whether they may be at risk of smartphone addiction.</li>
+            <li><b>Unique User Code:</b> First-time users receive a unique access code that allows them to retake the survey later. This code helps track behavioral changes without collecting personal identifiers.</li>
+            <li><b>Repeat Tracking & Progress Monitoring:</b> Returning users can enter their code to receive comparative feedback based on past submissions which allows reflection on trends and changes over time.</li>
+          </ul>
+          <h4 style={{marginTop: 18, color: "#1976d2"}}>Who are behind this?</h4>
+          <p style={{marginBottom: 0}}><b>Developed by</b><br/>
+          ⇒ Mufrad Mahmud<br/>
+          ⇒ Nicholas Hettiarachchige Don<br/>
+          Master’s students, Center for Ubiquitous Computing, University of Oulu.</p>
+          <p style={{marginBottom: 0}}><b>Research Supervisor</b><br/>
+          ⇒ Aku Visuri<br/>
+          University of Oulu</p>
+          <p style={{marginBottom: 0}}><b>Contact (for questions)</b><br/>
+          ✉️ mufrad.mahmud@oulu.fi<br/>
+          📞 +358 44 2461130</p>
+        </HelpModal>
       </div>
       <div className="responsive-card">
         
-        <h2 style={{ textAlign: "center", marginBottom: "30px", color: "#333" }}>About This Website</h2>
+        <h2 style={{ textAlign: "center", marginBottom: "30px", color: "#333" }}>Informed Consent</h2>
         
         <div style={{ display: "flex", flexDirection: "column", gap: "25px", marginBottom: "30px" }}>
           {/* First box - Left aligned */}
           <div style={{
-            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            background: "linear-gradient(135deg, #789fd6ff 0%, #7d6693ff 100%)",
             color: "white",
             padding: "20px",
             borderRadius: "15px",
-            textAlign: "center",
             boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
             alignSelf: "flex-start",
-            maxWidth: "300px"
+            maxWidth: "300px",
+            textAlign: "center"  // Center the content inside the div
           }}>
-            <strong style={{ fontSize: "16px" }}>It's COMPLETELY anonymous!</strong><br />
-            You don't need to worry about anything.
+            <strong style={{ fontSize: "16px" }}>Research Consent Form</strong><br />
+            <p style={{ margin: "8px 0", textAlign: "justify" }}>This consent form, a copy of which has been given to you, is only part of the process of informed consent. It should give you the basic idea of what the research is about and what your participation will involve. If you would like more detail about something mentioned here, or information not included here, please ask. Please take the time to read this form carefully and to understand any accompanying information.</p>
           </div>
+
 
           {/* Second box - Right aligned */}
           <div style={{
-            background: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
+            background: "linear-gradient(135deg, #e2d364ff 0%, #6c9858ff 100%)",
             color: "#333",
             padding: "20px",
             borderRadius: "15px",
@@ -229,12 +279,13 @@ function DescriptionPage({ onNext, onBack, usercode }) {
             alignSelf: "flex-end",
             maxWidth: "300px"
           }}>
-            <strong style={{ fontSize: "16px" }}>Just be you while answering</strong>
+            <strong style={{ fontSize: "16px" }}>Research Project Title</strong>
+            <p style={{ margin: "8px 0", textAlign: "justify" }}>Campus Smartphone Addiction</p>
           </div>
 
           {/* Third box - Left aligned */}
           <div style={{
-            background: "linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)",
+            background: "linear-gradient(135deg, #76f1bcff 0%, #fef9d7 100%)",
             color: "#333",
             padding: "20px",
             borderRadius: "15px",
@@ -243,10 +294,136 @@ function DescriptionPage({ onNext, onBack, usercode }) {
             alignSelf: "flex-start",
             maxWidth: "300px"
           }}>
-            <strong style={{ fontSize: "16px" }}>For getting useful feedbacks</strong>
+            <strong style={{ fontSize: "16px"}}>About the Researchers</strong>
+            <p style={{ margin: "8px 0", textAlign: "justify" }}>
+              Researchers: <br></br>
+              ➱ Mufrad Mahmud <br></br>
+              ➱ Nicholas Hettiarachchige Don<br></br><br></br>
+              Research Supervisor: <br></br>
+              ▻ Aku Visuri <br></br><br></br>
+              Mufrad Mahmud and Nicholas Hettiarachchige Don are Masters students at the Center for Ubiquitous Computing at the University of Oulu. The supervisor from the university side is Aku Visuri.<br></br>Contact information of Mufrad Mahmud is mufrad.mahmud@oulu.fi and +358 44 2461130.
+              </p>
           </div>
 
-          {/* Consent form box - Centered */}
+          {/* 4th box - Right aligned*/}
+          <div style={{
+            background: "linear-gradient(135deg, #76b4f1ff 0%, #c7d3f5ff 100%)",
+            color: "#333",
+            padding: "20px",
+            borderRadius: "15px",
+            textAlign: "center",
+            boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+            alignSelf: "flex-end",
+            maxWidth: "300px"
+          }}>
+            <strong style={{ fontSize: "16px" }}>Experiment Purpose</strong>
+            <p style={{ margin: "8px 0", textAlign: "justify" }}>
+              The purpose of this experiment is to explore the relationship between smartphone use and academic, emotional, and behavioral patterns among students in a post-COVID university environment. This study will help identify patterns of smartphone overuse or potential addiction, offering insights into students’ wellbeing, academic engagement, and digital habits. The results can guide the development of digital wellbeing tools and inform future interventions for smartphone-related behavioral challenges.
+            </p>
+          </div>
+
+          {/* 5th box - Left aligned */}
+          <div style={{
+            background: "linear-gradient(135deg, #84d2deff 0%, #b37890ff 100%)",
+            color: "#333",
+            padding: "20px",
+            borderRadius: "15px",
+            textAlign: "center",
+            boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+            alignSelf: "flex-start",
+            maxWidth: "300px"
+          }}>
+            <strong style={{ fontSize: "16px" }}>Participant Recruitment and Selection</strong>
+            <p style={{ margin: "8px 0", textAlign: "justify" }}>Participants are recruited through an open call aimed at individuals currently enrolled in higher education or engaged in campus life. We welcome participants from all backgrounds who are interested in understanding their smartphone use patterns and whether they may be prone to problematic smartphone use or addiction.</p>
+          </div>
+
+          {/* 6th box - Right aligned */}
+          <div style={{
+            background: "linear-gradient(135deg, #76b4f1ff 0%, #c7d3f5ff 100%)",
+            color: "#333",
+            padding: "20px",
+            borderRadius: "15px",
+            textAlign: "center",
+            boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+            alignSelf: "flex-end",
+            maxWidth: "300px"
+          }}>
+            <strong style={{ fontSize: "16px" }}>Experiment Procedure & Data Collection</strong>
+            <p style={{ margin: "8px 0", textAlign: "justify" }}>
+            The study will run over an extended period, with multiple voluntary participation points throughout the academic year. Data will be collected via an online survey platform that includes: <br></br><br></br>
+            ➥ Smartphone Addiction Scale (SAS) short version standardized questionnaire. <br></br>
+            ➥ Self-reported wellbeing and academic performance indicators. <br></br>
+            ➥ Optional interactive components and chatbot feedback. <br></br><br></br>
+            You will not be asked to provide personal identifiable information. We collect only basic demographic data such as age, gender, country of origin, field of study, study years to support comparative analysis for now. A unique user code will be generated to allow repeat participation and personalized feedback without identifying you. <br></br><br></br>
+            Your responses are stored securely and used solely for academic research purposes. You may withdraw from the study at any time. If you do not wish to continue, you can request for all previously submitted data to be removed.
+            </p>
+          </div>
+
+          {/* 7th box - Left aligned */}
+          <div style={{
+            background: "linear-gradient(135deg, #8ec598ff 0%, #a7b1e4ff 100%)",
+            color: "#333",
+            padding: "20px",
+            borderRadius: "15px",
+            textAlign: "center",
+            boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+            alignSelf: "flex-start",
+            maxWidth: "300px"
+          }}>
+            <strong style={{ fontSize: "16px" }}>Data Archiving/Destruction</strong>
+            <p style={{ margin: "8px 0", textAlign: "justify" }}>Data will be kept securely. The investigator will destroy study data after the research. This will be at the end of the research project when results are fully reported and disseminated.</p>
+          </div>
+
+          {/* 8th box - Right aligned */}
+          <div style={{
+            background: "linear-gradient(135deg, #f7c28dff 0%, #cdaab8ff 100%)",
+            color: "#333",
+            padding: "20px",
+            borderRadius: "15px",
+            textAlign: "center",
+            boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+            alignSelf: "flex-end",
+            maxWidth: "300px"
+          }}>
+            <strong style={{ fontSize: "16px" }}>Confidentiality</strong>
+            <p style={{ margin: "8px 0", textAlign: "justify" }}>
+              Confidentiality and participant anonymity will be strictly maintained. All information gathered will be used for statistical analysis only and no names or other identifying characteristics will be stated in the final or any other reports.
+            </p>
+          </div>
+
+          {/* 9th box - Left aligned */}
+          <div style={{
+            background: "linear-gradient(135deg, rgba(170, 221, 179, 1) 0%, #dadb7bff 100%)",
+            color: "#333",
+            padding: "20px",
+            borderRadius: "15px",
+            textAlign: "center",
+            boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+            alignSelf: "flex-start",
+            maxWidth: "300px"
+          }}>
+            <strong style={{ fontSize: "16px" }}>Likelihood of Discomfort</strong>
+            <p style={{ margin: "8px 0", textAlign: "justify" }}>There is no likelihood of risk associated with participation.</p>
+          </div>
+
+          {/* 10th box - Right aligned */}
+          <div style={{
+            background: "linear-gradient(135deg, #8da1f7ff 0%, #cdaab8ff 100%)",
+            color: "#333",
+            padding: "20px",
+            borderRadius: "15px",
+            textAlign: "center",
+            boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+            alignSelf: "flex-end",
+            maxWidth: "300px"
+          }}>
+            <strong style={{ fontSize: "16px" }}>Finding out about Results</strong>
+            <p style={{ margin: "8px 0", textAlign: "justify" }}>
+              The participants can find out the results of the study just after completing the survey.
+            </p>
+          </div>
+
+          {/* Agreement box - Centered */}
           <div style={{
             background: "white",
             border: "2px solid #e0e0e0",
@@ -259,16 +436,11 @@ function DescriptionPage({ onNext, onBack, usercode }) {
             width: "100%"
           }}>
             <div style={{ textAlign: "center", marginBottom: "20px" }}>
-              <h3 style={{ margin: "15px 0", color: "#333" }}>Consent Form</h3>
+              <h3 style={{ margin: "15px 0", color: "#333" }}>Agreement</h3>
             </div>
             
             <div style={{ fontSize: "14px", lineHeight: "1.6", color: "#555", marginBottom: "25px" }}>
-              <p style={{ margin: "8px 0" }}>→ By continuing, you agree to participate in this study on smartphone usage habits.</p>
-              <p style={{ margin: "8px 0" }}>→ We help you reflect on your smartphone habits and provide personalized insights.</p>
-              <p style={{ margin: "8px 0" }}>→ Your responses will be stored securely and only used for academic research.</p>
-              <p style={{ margin: "8px 0" }}>→ No personal data is ever shared with third parties.</p>
-              <p style={{ margin: "8px 0" }}>→ We collect minimal demographic information (e.g., age, gender, education) only for research purposes.</p>
-              <p style={{ margin: "8px 0", fontWeight: "bold" }}>By proceeding, you consent to these terms.</p>
+              <p style={{ margin: "8px 0", fontStyle: "italic", textAlign: "justify" }}>By selecting "Accept", you confirm that you have read and understood the information about this study, and voluntarily agree to participate. Your participation is entirely optional, and you may discontinue at any time. You may reach out to the research team at any point for questions or clarifications related to this study.</p>
             </div>
 
             <div style={{ display: "flex", justifyContent: "center", gap: "15px" }}>
@@ -586,10 +758,10 @@ function DemographicsPage({ onSubmit, onBack, usercode }) {
         </div>
 
         <div style={{ marginBottom: 20 }}>
-          <label style={{ display: "block", marginBottom: 8, fontWeight: "bold" }}>What is your country?</label>
+          <label style={{ display: "block", marginBottom: 8, fontWeight: "bold" }}>What is your country of origin?</label>
           <input 
             name="country" 
-            placeholder="Enter your country" 
+            placeholder="Enter your country of origin" 
             value={form.country} 
             onChange={handleChange}
             style={{ 
@@ -830,6 +1002,7 @@ export default function App() {
   const [surveyCompleted, setSurveyCompleted] = useState(false);
   const [submittedQuestions, setSubmittedQuestions] = useState(new Set());
   const [pendingDemographics, setPendingDemographics] = useState(null);
+  const [showHelp, setShowHelp] = useState(false);
 
   useEffect(() => {
     axios.get("http://localhost:8000/questions")
@@ -979,8 +1152,55 @@ export default function App() {
 
   return (
     <div className="responsive-page">
-      <div className="responsive-header">
+      <div className="responsive-header" style={{ display: "flex", alignItems: "center", paddingRight: 16 }}>
         <HomeLogo onHome={() => setPage(0)} disabled={true} />
+        <div style={{ flex: 1 }} />
+        <button
+          aria-label="Show help"
+          onClick={() => setShowHelp(true)}
+          style={{
+            background: "#e3f2fd",
+            border: "none",
+            borderRadius: "50%",
+            width: 38,
+            height: 38,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 22,
+            color: "#1976d2",
+            cursor: "pointer",
+            boxShadow: "0 2px 8px #e3f2fd"
+          }}
+        >
+          ?
+        </button>
+        <HelpModal open={showHelp} onClose={() => setShowHelp(false)}>
+          <h2 style={{textAlign: "center", color: "#1976d2", marginBottom: 12}}>About the System</h2>
+          <h3 style={{textAlign: "center", marginTop: 0, color: "#333"}}>Smartphone Wizard</h3>
+          <p>This system is created to explore the relationship between smartphone use and academic, emotional, and behavioral patterns among students in a post-COVID university environment. This study will help identify patterns of smartphone overuse or potential addiction, offering insights into students’ wellbeing, academic engagement, and digital habits. The results can guide the development of digital wellbeing tools and inform future interventions for smartphone-related behavioral challenges.</p>
+          <h4 style={{marginTop: 18, color: "#1976d2"}}>Purpose of the System</h4>
+          <p>The system is built to help users reflect on their smartphone usage habits and identify whether their behavior may be linked to signs of problematic use or smartphone addiction.</p>
+          <h4 style={{marginTop: 18, color: "#1976d2"}}>How It Works</h4>
+          <ul style={{marginLeft: 18, marginBottom: 0}}>
+            <li><b>Answer Structured Questions:</b> Users are guided through a wizard-style interface where they respond to a series of smartphone-related behavioral questions.</li>
+            <li><b>Instant Feedback Mechanism:</b> After each response, a feedback comment appears to reflect the potential behavioral implications of the selected answer.</li>
+            <li><b>Addiction Risk Classification:</b> At the end of the survey, users receive a summary based on their cumulative score that indicates whether they may be at risk of smartphone addiction.</li>
+            <li><b>Unique User Code:</b> First-time users receive a unique access code that allows them to retake the survey later. This code helps track behavioral changes without collecting personal identifiers.</li>
+            <li><b>Repeat Tracking & Progress Monitoring:</b> Returning users can enter their code to receive comparative feedback based on past submissions which allows reflection on trends and changes over time.</li>
+          </ul>
+          <h4 style={{marginTop: 18, color: "#1976d2"}}>Who are behind this?</h4>
+          <p style={{marginBottom: 0}}><b>Developed by</b><br/>
+          ⇒ Mufrad Mahmud<br/>
+          ⇒ Nicholas Hettiarachchige Don<br/>
+          Master’s students, Center for Ubiquitous Computing, University of Oulu.</p>
+          <p style={{marginBottom: 0}}><b>Research Supervisor</b><br/>
+          ⇒ Aku Visuri<br/>
+          University of Oulu</p>
+          <p style={{marginBottom: 0}}><b>Contact (for questions)</b><br/>
+          ✉️ mufrad.mahmud@oulu.fi<br/>
+          📞 +358 44 2461130</p>
+        </HelpModal>
       </div>
       <div className="responsive-card" style={{ padding: 16 }}>
         <div style={{ textAlign: "right", marginTop: "40px"}}>

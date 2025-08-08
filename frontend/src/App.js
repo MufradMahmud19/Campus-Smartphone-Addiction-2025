@@ -3,6 +3,8 @@ import axios from "axios";
 import { WizardStep } from "./WizardStep";
 import SurveyInstructionsPage from "./components/SurveyInstructionsPage";
 import HelpModal from "./components/HelpModal";
+import AnswerDistributionChart from "./components/AnswerDistributionChart";
+import LLMChatBox from "./components/LLMChatBox";
 
 // Add global style for body background and improved card/header separation
 if (typeof window !== 'undefined') {
@@ -1003,6 +1005,8 @@ export default function App() {
   const [submittedQuestions, setSubmittedQuestions] = useState(new Set());
   const [pendingDemographics, setPendingDemographics] = useState(null);
   const [showHelp, setShowHelp] = useState(false);
+  const [chartData, setChartData] = useState([]);
+  const [showChatBox, setShowChatBox] = useState({}); // Changed to object to track per question
 
   useEffect(() => {
     axios.get("http://localhost:8000/questions")
@@ -1019,14 +1023,45 @@ export default function App() {
     if (page === 4) {
       setStep(0);
       setSubmittedQuestions(new Set()); // Reset submitted questions when entering wizard
+      setShowChatBox({}); // Reset chat box visibility for all questions
     }
   }, [page]);
 
-
-
-
-
-
+  // Fetch chart data when a question is submitted
+  useEffect(() => {
+    if (page === 4 && !loading && questions.length > 0) {
+      const limitedQuestions = questions.slice(0, 10);
+      const steps = [];
+      limitedQuestions.forEach((q, i) => {
+        steps.push({ type: "question", question: q.text, qIndex: i, question_id: q.id, questionNumber: i + 1 });
+      });
+      
+      if (steps.length > 0) {
+        const validStep = Math.max(0, Math.min(step, steps.length - 1));
+        const current = steps[validStep];
+        
+        if (current && submittedQuestions.has(current.qIndex) && current.question_id) {
+          fetch(`http://localhost:8000/question_answers/${current.question_id}`)
+            .then(res => res.json())
+            .then(data => {
+              // Defensive: ensure data is an array
+              let arr = [];
+              if (Array.isArray(data)) {
+                arr = data.map(d => d.answer);
+              } else if (data && typeof data === 'object' && 'answer' in data) {
+                arr = [data.answer];
+              } else {
+                arr = [];
+              }
+              setChartData(arr);
+            })
+            .catch(() => {
+              setChartData([]);
+            });
+        }
+      }
+    }
+  }, [page, loading, questions, step, submittedQuestions]);
 
   // Onboarding pages
   if (page === 0) return <FrontPage onNext={setPage} />;
@@ -1113,42 +1148,6 @@ export default function App() {
   if (validStep !== step) {
     setStep(validStep);
   }
-  
-  // Progress bar component
-  const ProgressBar = ({ current, total }) => {
-    const progress = (current / total) * 100;
-    return (
-      <div style={{ marginBottom: 20 }}>
-        <div style={{ 
-          display: "flex", 
-          justifyContent: "space-between", 
-          alignItems: "center", 
-          marginBottom: 8 
-        }}>
-          <span style={{ fontSize: "18px", fontWeight: "bold" }}>
-            {current}/{total}
-          </span>
-          <span style={{ fontSize: "14px", color: "#666" }}>
-            {Math.round(progress)}% Complete
-          </span>
-        </div>
-        <div style={{ 
-          width: "100%", 
-          height: "12px", 
-          backgroundColor: "#f0f0f0", 
-          borderRadius: "6px", 
-          overflow: "hidden" 
-        }}>
-          <div style={{ 
-            width: `${progress}%`, 
-            height: "100%", 
-            backgroundColor: "#4CAF50", 
-            transition: "width 0.3s ease" 
-          }} />
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div className="responsive-page">
@@ -1178,7 +1177,7 @@ export default function App() {
         <HelpModal open={showHelp} onClose={() => setShowHelp(false)}>
           <h2 style={{textAlign: "center", color: "#1976d2", marginBottom: 12}}>About the System</h2>
           <h3 style={{textAlign: "center", marginTop: 0, color: "#333"}}>Smartphone Wizard</h3>
-          <p>This system is created to explore the relationship between smartphone use and academic, emotional, and behavioral patterns among students in a post-COVID university environment. This study will help identify patterns of smartphone overuse or potential addiction, offering insights into students’ wellbeing, academic engagement, and digital habits. The results can guide the development of digital wellbeing tools and inform future interventions for smartphone-related behavioral challenges.</p>
+          <p>This system is created to explore the relationship between smartphone use and academic, emotional, and behavioral patterns among students in a post-COVID university environment. This study will help identify patterns of smartphone overuse or potential addiction, offering insights into students' wellbeing, academic engagement, and digital habits. The results can guide the development of digital wellbeing tools and inform future interventions for smartphone-related behavioral challenges.</p>
           <h4 style={{marginTop: 18, color: "#1976d2"}}>Purpose of the System</h4>
           <p>The system is built to help users reflect on their smartphone usage habits and identify whether their behavior may be linked to signs of problematic use or smartphone addiction.</p>
           <h4 style={{marginTop: 18, color: "#1976d2"}}>How It Works</h4>
@@ -1193,7 +1192,7 @@ export default function App() {
           <p style={{marginBottom: 0}}><b>Developed by</b><br/>
           ⇒ Mufrad Mahmud<br/>
           ⇒ Nicholas Hettiarachchige Don<br/>
-          Master’s students, Center for Ubiquitous Computing, University of Oulu.</p>
+          Master's students, Center for Ubiquitous Computing, University of Oulu.</p>
           <p style={{marginBottom: 0}}><b>Research Supervisor</b><br/>
           ⇒ Aku Visuri<br/>
           University of Oulu</p>
@@ -1206,52 +1205,234 @@ export default function App() {
         <div style={{ textAlign: "right", marginTop: "40px"}}>
         {usercode && <div style={{ margin: "16px 0", fontWeight: "bold" }}>Your User Code: {usercode}</div>}
         </div>
-        <ProgressBar current={currentQuestionNumber} total={10} />
-        {current && (
-          <WizardStep
-            key={`question-${current.qIndex}-${submittedQuestions.has(current.qIndex)}`}
-            question={current.question}
-            value={answers[current.qIndex]}
-            onChange={handleAnswerChange}
-            conversation={chats[current.qIndex] || []}
-            onSendChat={handleSendChat}
-            showChat={false}
-            onSubmit={() => {
-              // Mark this question as submitted
-              setSubmittedQuestions(prev => new Set([...prev, current.qIndex]));
-              // Show feedback after submitting
-              setChats(current => 
-                current.map((c, i) => 
-                  i === current.qIndex 
-                    ? [{ role: "AI", text: `Thank you for your answer! Your response was ${answers[current.qIndex]}/6. Is there anything you'd like to discuss about this question?` }]
-                    : c
-                )
-              );
-            }}
-            onBack={prevStep}
-            onNext={nextStep}
-            isLastStep={step === steps.length - 1}
-            isSubmitted={submittedQuestions.has(current.qIndex)}
-            question_id={current.question_id}
-          />
-        )}
-        {current && step === steps.length - 1 && submittedQuestions.has(current.qIndex) && (
-          <div style={{ marginTop: 20 }}>
-            <b>All answers:</b>
-            <pre>{JSON.stringify(createAnswersDictionary(), null, 2)}</pre>
+        
+        {/* Progress Bar with Navigation */}
+        <div style={{ marginBottom: 30 }}>
+          <div style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            justifyContent: "space-between",
+            marginBottom: 15
+          }}>
+            <button 
+              onClick={prevStep}
+              disabled={step === 0}
+              style={{
+                padding: "8px 12px",
+                fontSize: "18px",
+                backgroundColor: step === 0 ? "#cccccc" : "#4CAF50",
+                color: "white",
+                border: "none",
+                borderRadius: "6px",
+                cursor: step === 0 ? "not-allowed" : "pointer",
+                transition: "all 0.3s ease",
+                fontWeight: "bold",
+                opacity: step === 0 ? 0.5 : 1
+              }}
+              onMouseOver={(e) => {
+                if (step !== 0) {
+                  e.target.style.transform = "translateY(-2px)";
+                  e.target.style.boxShadow = "0 4px 15px rgba(76, 175, 80, 0.3)";
+                }
+              }}
+              onMouseOut={(e) => {
+                e.target.style.transform = "translateY(0)";
+                e.target.style.boxShadow = "none";
+              }}
+            >
+              ←
+            </button>
+            
+            <div style={{ flex: 1, margin: "0 20px" }}>
+              <div style={{ 
+                display: "flex", 
+                justifyContent: "space-between", 
+                alignItems: "center", 
+                marginBottom: 8 
+              }}>
+                <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+                  {currentQuestionNumber}/10
+                </span>
+                <span style={{ fontSize: "14px", color: "#666" }}>
+                  {Math.round((currentQuestionNumber / 10) * 100)}% Complete
+                </span>
+              </div>
+              <div style={{ 
+                width: "100%", 
+                height: "12px", 
+                backgroundColor: "#f0f0f0", 
+                borderRadius: "6px", 
+                overflow: "hidden" 
+              }}>
+                <div style={{ 
+                  width: `${(currentQuestionNumber / 10) * 100}%`, 
+                  height: "100%", 
+                  backgroundColor: "#4CAF50", 
+                  transition: "width 0.3s ease" 
+                }} />
+              </div>
+            </div>
+            
+            <button 
+              onClick={nextStep}
+              disabled={!submittedQuestions.has(current.qIndex) || step === steps.length - 1}
+              style={{
+                padding: "8px 12px",
+                fontSize: "18px",
+                backgroundColor: (!submittedQuestions.has(current.qIndex) || step === steps.length - 1) ? "#cccccc" : "#4CAF50",
+                color: "white",
+                border: "none",
+                borderRadius: "6px",
+                cursor: (!submittedQuestions.has(current.qIndex) || step === steps.length - 1) ? "not-allowed" : "pointer",
+                transition: "all 0.3s ease",
+                fontWeight: "bold",
+                opacity: (!submittedQuestions.has(current.qIndex) || step === steps.length - 1) ? 0.5 : 1
+              }}
+              onMouseOver={(e) => {
+                if (submittedQuestions.has(current.qIndex) && step !== steps.length - 1) {
+                  e.target.style.transform = "translateY(-2px)";
+                  e.target.style.boxShadow = "0 4px 15px rgba(76, 175, 80, 0.3)";
+                }
+              }}
+              onMouseOut={(e) => {
+                e.target.style.transform = "translateY(0)";
+                e.target.style.boxShadow = "none";
+              }}
+            >
+              →
+            </button>
+          </div>
+        </div>
 
-            <div style={{ textAlign: "right", marginTop: "40px" }}>
+        {/* Main Content Area */}
+        <div>
+          {/* Question Section */}
+          <div style={{ marginBottom: "20px" }}>
+            {current && (
+              <WizardStep
+                key={`question-${current.qIndex}-${submittedQuestions.has(current.qIndex)}`}
+                question={current.question}
+                value={answers[current.qIndex]}
+                onChange={handleAnswerChange}
+                conversation={chats[current.qIndex] || []}
+                onSendChat={handleSendChat}
+                showChat={false}
+                onSubmit={() => {
+                  // Mark this question as submitted
+                  setSubmittedQuestions(prev => new Set([...prev, current.qIndex]));
+                  // Show feedback after submitting
+                  setChats(current => 
+                    current.map((c, i) => 
+                      i === current.qIndex 
+                        ? [{ role: "AI", text: `Thank you for your answer! Your response was ${answers[current.qIndex]}/6. Is there anything you'd like to discuss about this question?` }]
+                        : c
+                    )
+                  );
+                }}
+                onBack={prevStep}
+                onNext={nextStep}
+                isLastStep={step === steps.length - 1}
+                isSubmitted={submittedQuestions.has(current.qIndex)}
+                question_id={current.question_id}
+                showNavigation={false} // Hide navigation buttons in WizardStep since we have them in the progress bar
+              />
+            )}
+          </div>
+
+          {/* Graph and Feedback Section (only show after submit) */}
+          {current && submittedQuestions.has(current.qIndex) && (
+            <div style={{ 
+              padding: "20px",
+              backgroundColor: "#f8f9fa",
+              borderRadius: "12px",
+              border: "1px solid #e9ecef",
+              marginBottom: "20px"
+            }}>
+              {/* Graph and Feedback Side by Side */}
+              <div style={{ display: "flex", gap: "30px", alignItems: "flex-start" }}>
+                {/* Graph Section */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <h3 style={{ margin: "0 0 15px 0", color: "#333", fontSize: "18px" }}>Answer Distribution</h3>
+                  <AnswerDistributionChart 
+                    answers={chartData} 
+                    userAnswer={answers[current.qIndex]} 
+                  />
+                </div>
+
+                {/* Feedback Section */}
+                <div style={{ flex: 1, minWidth: 300 }}>
+                  <h3 style={{ margin: "0 0 15px 0", color: "#333", fontSize: "18px" }}>Feedback</h3>
+                  <div style={{ 
+                    padding: "15px",
+                    backgroundColor: "white",
+                    borderRadius: "8px",
+                    border: "1px solid #dee2e6",
+                    marginBottom: "15px"
+                  }}>
+                    <p style={{ margin: "0", color: "#666" }}>
+                      You have answered question {currentQuestionNumber} with a score of {answers[current.qIndex]}/6.
+                    </p>
+                  </div>
+                  
+                  {/* Start Chat Button */}
+                  <button
+                    onClick={() => setShowChatBox(prev => ({ ...prev, [current.qIndex]: true }))}
+                    style={{
+                      width: "100%",
+                      padding: "12px 20px",
+                      fontSize: "16px",
+                      backgroundColor: "#007bff",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "8px",
+                      cursor: "pointer",
+                      transition: "all 0.3s ease",
+                      fontWeight: "bold"
+                    }}
+                    onMouseOver={(e) => {
+                      e.target.style.transform = "translateY(-2px)";
+                      e.target.style.boxShadow = "0 4px 15px rgba(0, 123, 255, 0.3)";
+                    }}
+                    onMouseOut={(e) => {
+                      e.target.style.transform = "translateY(0)";
+                      e.target.style.boxShadow = "none";
+                    }}
+                  >
+                    Start Chat
+                  </button>
+                </div>
+              </div>
+
+              {/* Chat Section (only show after clicking Start Chat) */}
+              {showChatBox[current.qIndex] && (
+                <div style={{ marginTop: "30px" }}>
+                  <h3 style={{ margin: "0 0 15px 0", color: "#333", fontSize: "18px" }}>Chat with AI</h3>
+                  <LLMChatBox 
+                    conversation={chats[current.qIndex] || []} 
+                    onSend={handleSendChat} 
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Finish Survey Button */}
+        {current && step === steps.length - 1 && submittedQuestions.has(current.qIndex) && (
+          <div style={{ marginTop: 30, textAlign: "center" }}>
             <button 
               onClick={handleFinishSurvey}
               style={{ 
-                marginTop: 20, 
-                padding: "12px 24px", 
-                fontSize: 16, 
+                padding: "15px 30px", 
+                fontSize: "18px", 
                 backgroundColor: "#4CAF50", 
                 color: "white", 
                 border: "none", 
-                borderRadius: "4px",
-                cursor: "pointer"
+                borderRadius: "8px",
+                cursor: "pointer",
+                boxShadow: "0 4px 15px rgba(76, 175, 80, 0.3)",
+                transition: "all 0.3s ease",
+                fontWeight: "bold"
               }}
               onMouseOver={(e) => {
                 e.target.style.transform = "translateY(-2px)";
@@ -1264,7 +1445,6 @@ export default function App() {
             >
               Finish Survey
             </button>
-            </div>
           </div>
         )}
       </div>

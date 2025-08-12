@@ -1009,6 +1009,7 @@ export default function App() {
   const [showChatBox, setShowChatBox] = useState({}); // Changed to object to track per question
   const [chartLoading, setChartLoading] = useState(false);
   const [chartError, setChartError] = useState(null);
+  const [chartKey, setChartKey] = useState(0);
 
   useEffect(() => {
     axios.get("http://localhost:8000/questions")
@@ -1042,7 +1043,7 @@ export default function App() {
         const validStep = Math.max(0, Math.min(step, steps.length - 1));
         const current = steps[validStep];
         
-        if (current && submittedQuestions.has(current.qIndex) && current.question_id) {
+          if (current && submittedQuestions.has(current.qIndex) && current.question_id) {
           fetchChartData(current.question_id);
         }
       }
@@ -1337,7 +1338,7 @@ export default function App() {
                 conversation={chats[current.qIndex] || []}
                 onSendChat={handleSendChat}
                 showChat={false}
-                onSubmit={() => {
+                 onSubmit={() => {
                   // Mark this question as submitted
                   setSubmittedQuestions(prev => new Set([...prev, current.qIndex]));
                   // Show feedback after submitting
@@ -1348,6 +1349,11 @@ export default function App() {
                         : c
                     )
                   );
+                   // Immediately refresh chart and force re-render keyed by current answer
+                   if (current.question_id) {
+                     fetchChartData(current.question_id);
+                     setChartKey(k => k + 1);
+                   }
                 }}
                 onBack={prevStep}
                 onNext={nextStep}
@@ -1362,7 +1368,7 @@ export default function App() {
           {/* Graph and Feedback Section (only show after submit) */}
           {current && submittedQuestions.has(current.qIndex) && (
             <div style={{ 
-              padding: "20px",
+              padding: "16px",
               backgroundColor: "#f8f9fa",
               borderRadius: "12px",
               border: "1px solid #e9ecef",
@@ -1370,10 +1376,10 @@ export default function App() {
             }}>
               {/* Graph and Feedback Side by Side */}
               <div style={{ 
-                display: "flex", 
-                flexDirection: "column",
-                gap: "30px", 
-                alignItems: "stretch"
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "16px",
+                alignItems: "start"
               }}>
                 {/* Graph Section */}
                 <div style={{ width: "100%" }}>
@@ -1433,10 +1439,12 @@ export default function App() {
                   )}
                   
                   {!chartLoading && !chartError && (
-                    <AnswerDistributionChart 
-                      answers={chartData} 
-                      userAnswer={answers[current.qIndex]} 
-                    />
+                    <div key={`${chartKey}-${current.qIndex}-${answers[current.qIndex]}`}>
+                      <AnswerDistributionChart 
+                        answers={chartData} 
+                        userAnswer={answers[current.qIndex]} 
+                      />
+                    </div>
                   )}
                 </div>
 
@@ -1486,7 +1494,7 @@ export default function App() {
 
               {/* Chat Section (only show after clicking Start Chat) */}
               {showChatBox[current.qIndex] && (
-                <div style={{ marginTop: "30px" }}>
+                <div style={{ marginTop: "16px" }}>
                   <h3 style={{ margin: "0 0 15px 0", color: "#333", fontSize: "18px" }}>Chat with AI</h3>
                   <LLMChatBox 
                     conversation={chats[current.qIndex] || []} 

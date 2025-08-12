@@ -24,7 +24,7 @@ def recreate_tables():
         )
 
         with engine.begin() as connection:
-            print("🗑️  Dropping existing tables...")
+            print("Dropping existing tables...")
 
             # Drop tables in reverse dependency order
             tables_to_drop = [
@@ -37,13 +37,13 @@ def recreate_tables():
             for table in tables_to_drop:
                 try:
                     connection.execute(text(f"DROP TABLE IF EXISTS `{table}`"))
-                    print(f"   ✅ Dropped table: {table}")
+                    print(f"   Dropped table: {table}")
                 except Exception as e:
-                    print(f"   ⚠️  Could not drop {table}: {e}")
+                    print(f"   Could not drop {table}: {e}")
 
-            print("✅ All tables dropped successfully!")
+            print("All tables dropped successfully!")
 
-            print("\n🔧 Recreating tables with correct structure...")
+            print("\nRecreating tables with correct structure...")
 
             # Create questions table
             connection.execute(text("""
@@ -53,7 +53,7 @@ def recreate_tables():
                     INDEX idx_text (text)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             """))
-            print("   ✅ Created table: questions")
+            print("   Created table: questions")
 
             # Create users table
             connection.execute(text("""
@@ -69,7 +69,7 @@ def recreate_tables():
                     INDEX idx_usercode (usercode)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             """))
-            print("   ✅ Created table: users")
+            print("  Created table: users")
 
             # Create user_responses table
             connection.execute(text("""
@@ -84,7 +84,7 @@ def recreate_tables():
                     FOREIGN KEY (usercode) REFERENCES users(usercode) ON DELETE CASCADE
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             """))
-            print("   ✅ Created table: user_responses")
+            print("  Created table: user_responses")
 
             # Create user_chats table
             connection.execute(text("""
@@ -95,12 +95,12 @@ def recreate_tables():
                     timestamp INT
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             """))
-            print("   ✅ Created table: user_chats")
+            print("  Created table: user_chats")
 
-            print("\n🎉 All tables recreated successfully!")
+            print("\nAll tables recreated successfully!")
 
             # Insert some sample questions
-            print("\n📝 Inserting sample questions...")
+            print("\nInserting sample questions...")
             sample_questions = [
                 "Missing planned work due to smartphone use",
                 "Having a hard time concentrating in class, while doing assignments, or while working due to smartphone use",
@@ -118,29 +118,29 @@ def recreate_tables():
                 connection.execute(text("""
                     INSERT INTO questions (id, text) VALUES (:id, :text)
                 """), {"id": i, "text": question_text})
-                print(f"   ✅ Added question {i}: {question_text[:50]}...")
+                print(f"   Added question {i}: {question_text[:50]}...")
 
-            print(f"✅ Inserted {len(sample_questions)} sample questions!")
+            print(f"Inserted {len(sample_questions)} sample questions!")
 
             return True
 
     except Exception as e:
-        print(f"❌ Error recreating tables: {e}")
+        print(f"Error recreating tables: {e}")
         return False
 
 def main():
-    print("🚀 Recreating Database Tables for MySQL...")
+    print("Recreating Database Tables for MySQL...")
     print("=" * 50)
 
     if recreate_tables():
-        print("\n🎉 Table recreation completed successfully!")
-        print("📋 Next steps:")
+        print("\nTable recreation completed successfully!")
+        print("Next steps:")
         print("   1. Restart your FastAPI server: uvicorn app.main:app --reload")
         print("   2. Try registering a new user again")
         print("   3. The autoincrement issue should be resolved")
         return True
     else:
-        print("\n❌ Table recreation failed. Please check the errors above.")
+        print("\nTable recreation failed. Please check the errors above.")
         return False
 
 if __name__ == "__main__":

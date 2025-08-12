@@ -22,7 +22,7 @@ def add_all_questions():
         "The people around me tell me that I use my smartphone too much"
     ]
     
-    print("📝 Adding all SAS questions to database...")
+    print("Adding all SAS questions to database...")
     print("=" * 50)
     
     success_count = 0
@@ -37,29 +37,29 @@ def add_all_questions():
             )
             
             if response.status_code == 200:
-                print(f"✅ {i:2d}. Added: {question[:60]}...")
+                print(f"{i:2d}. Added: {question[:60]}...")
                 success_count += 1
             else:
-                print(f"❌ {i:2d}. Failed: {response.status_code} - {response.text}")
+                print(f"{i:2d}. Failed: {response.status_code} - {response.text}")
                 failed_count += 1
                 
         except requests.exceptions.ConnectionError:
-            print(f"❌ {i:2d}. Connection failed - make sure server is running")
+            print(f"{i:2d}. Connection failed - make sure server is running")
             failed_count += 1
         except Exception as e:
-            print(f"❌ {i:2d}. Error: {e}")
+            print(f"{i:2d}. Error: {e}")
             failed_count += 1
     
     print("=" * 50)
-    print(f"🎉 Results: {success_count} successful, {failed_count} failed")
+    print(f"Results: {success_count} successful, {failed_count} failed")
     
     if success_count == len(questions):
-        print("✅ All questions added successfully!")
-        print("📱 Your survey is now ready with proper SAS questions!")
+        print("All questions added successfully!")
+        print("Your survey is now ready with proper SAS questions!")
     elif success_count > 0:
-        print(f"⚠️  {success_count}/{len(questions)} questions added. Check errors above.")
+        print(f"{success_count}/{len(questions)} questions added. Check errors above.")
     else:
-        print("❌ No questions were added. Please check your server and database.")
+        print("No questions were added. Please check your server and database.")
 
 if __name__ == "__main__":
     add_all_questions()

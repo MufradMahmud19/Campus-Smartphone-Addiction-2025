@@ -31,9 +31,10 @@ export default function AnswerDistributionChart({ answers, userAnswer }) {
   }
 
   const counts = [1, 2, 3, 4, 5, 6].map(val => answers.filter(a => a === val).length);
-  const userIndex = userAnswer - 1;
+  const normalizedUserAnswer = Number.isFinite(Number(userAnswer)) ? Math.max(1, Math.min(6, Number(userAnswer))) : 3;
+  const userIndex = normalizedUserAnswer - 1;
   const totalResponses = answers.length;
-  const userAnswerCount = counts[userIndex];
+  const userAnswerCount = counts[userIndex] ?? 0;
   const userAnswerPercentage = totalResponses > 0 ? Math.round((userAnswerCount / totalResponses) * 100) : 0;
 
   const data = {
@@ -42,8 +43,13 @@ export default function AnswerDistributionChart({ answers, userAnswer }) {
       {
         label: "All Answers",
         data: counts,
-        backgroundColor: counts.map((_, i) => i === userIndex ? "#4CAF50" : "#90caf9"),
+        backgroundColor: counts.map((_, i) => (i === userIndex ? "#4CAF50" : "#90caf9")),
         borderWidth: 1,
+        borderColor: counts.map((_, i) => (i === userIndex ? "#2e7d32" : "#64b5f6")),
+        hoverBackgroundColor: counts.map((_, i) => (i === userIndex ? "#43a047" : "#64b5f6")),
+        maxBarThickness: 22,
+        categoryPercentage: 0.5,
+        barPercentage: 0.8,
       },
     ],
   };
@@ -64,7 +70,11 @@ export default function AnswerDistributionChart({ answers, userAnswer }) {
     scales: {
       y: {
         beginAtZero: true,
-        ticks: { stepSize: 1 }
+        ticks: { stepSize: 1 },
+        grid: { color: "#eee" }
+      },
+      x: {
+        grid: { display: false }
       }
     },
     responsive: true,
@@ -72,7 +82,7 @@ export default function AnswerDistributionChart({ answers, userAnswer }) {
   };
 
   return (
-    <div style={{ background: "#f9f9f9", border: "1px solid #ddd", borderRadius: 10, padding: 20, margin: "20px 0", minHeight: 250 }}>
+    <div style={{ background: "#f9f9f9", border: "1px solid #ddd", borderRadius: 10, padding: 16, margin: "16px 0", minHeight: 220 }}>
       <div style={{ fontWeight: "bold", marginBottom: 10 }}>How does your answer compare to others?</div>
       
       {/* Statistics */}
@@ -91,7 +101,7 @@ export default function AnswerDistributionChart({ answers, userAnswer }) {
         <div>People who chose {userAnswer}: <strong>{userAnswerCount}</strong> ({userAnswerPercentage}%)</div>
       </div>
       
-      <div style={{ height: 180 }}>
+      <div style={{ height: 150 }}>
         <Bar data={data} options={options} />
       </div>
       <div style={{ fontSize: 13, color: "#666", marginTop: 10 }}>

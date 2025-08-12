@@ -22,18 +22,18 @@ def add_question(question_text):
         )
         
         if response.status_code == 200:
-            print(f"✅ Added question: {question_text[:50]}...")
+            print(f"Added question: {question_text[:50]}...")
             return True
         else:
-            print(f"❌ Failed to add question: {response.status_code}")
+            print(f"Failed to add question: {response.status_code}")
             print(f"   Response: {response.text}")
             return False
             
     except requests.exceptions.ConnectionError:
-        print("❌ Could not connect to server. Make sure it's running on http://127.0.0.1:8000")
+        print("Could not connect to server. Make sure it's running on http://127.0.0.1:8000")
         return False
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"Error: {e}")
         return False
 
 def add_multiple_questions():
@@ -51,17 +51,17 @@ def add_multiple_questions():
         "The people around me tell me that I use my smartphone too much"
     ]
     
-    print("📝 Adding multiple questions...")
+    print("Adding multiple questions...")
     success_count = 0
     
     for question in questions:
         if add_question(question):
             success_count += 1
     
-    print(f"\n🎉 Added {success_count}/{len(questions)} questions successfully!")
+    print(f"\nAdded {success_count}/{len(questions)} questions successfully!")
 
 def main():
-    print("📝 Question Management Tool")
+    print("Question Management Tool")
     print("=" * 40)
     
     while True:
@@ -77,7 +77,7 @@ def main():
             if question_text:
                 add_question(question_text)
             else:
-                print("❌ Question text cannot be empty")
+                print("Question text cannot be empty")
                 
         elif choice == "2":
             add_multiple_questions()
@@ -87,7 +87,7 @@ def main():
             break
             
         else:
-            print("❌ Invalid choice. Please enter 1, 2, or 3.")
+            print("Invalid choice. Please enter 1, 2, or 3.")
 
 if __name__ == "__main__":
     main()

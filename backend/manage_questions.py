@@ -17,10 +17,10 @@ def load_config():
         with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
             return json.load(f)
     except FileNotFoundError:
-        print(f"❌ Config file {CONFIG_FILE} not found!")
+        print(f"Config file {CONFIG_FILE} not found!")
         return None
     except json.JSONDecodeError as e:
-        print(f"❌ Error parsing config file: {e}")
+        print(f"Error parsing config file: {e}")
         return None
 
 def save_config(config_data):
@@ -28,33 +28,33 @@ def save_config(config_data):
     try:
         with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
             json.dump(config_data, f, indent=2, ensure_ascii=False)
-        print("✅ Config file saved successfully!")
+        print("Config file saved successfully!")
         return True
     except Exception as e:
-        print(f"❌ Error saving config file: {e}")
+        print(f"Error saving config file: {e}")
         return False
 
 def display_questions(config_data):
     """Display all current questions"""
-    print("\n📋 Current Questions:")
+    print("\nCurrent Questions:")
     print("=" * 80)
     
     for i, q in enumerate(config_data["questions"], 1):
-        status = "✅" if q.get("active", True) else "❌"
+        status = "ok" if q.get("active", True) else "not ok"
         category = q.get("category", "general")
         print(f"{i:2d}. {status} [{category:15}] {q['text']}")
     
-    print(f"\n📊 Total: {len(config_data['questions'])} questions")
-    print(f"📅 Last updated: {config_data.get('metadata', {}).get('last_updated', 'unknown')}")
+    print(f"\nTotal: {len(config_data['questions'])} questions")
+    print(f"Last updated: {config_data.get('metadata', {}).get('last_updated', 'unknown')}")
 
 def add_question(config_data):
     """Add a new question"""
-    print("\n➕ Adding new question...")
+    print("\nAdding new question...")
     
     # Get question details
     text = input("Question text: ").strip()
     if not text:
-        print("❌ Question text cannot be empty")
+        print("Question text cannot be empty")
         return False
     
     category = input("Category (productivity/academic/physical/dependency/emotional/psychological/addiction/social/time_management/social_feedback): ").strip()
@@ -79,7 +79,7 @@ def add_question(config_data):
     config_data["metadata"]["total_questions"] = len(config_data["questions"])
     config_data["metadata"]["last_updated"] = "2025-01-27"  # You can make this dynamic
     
-    print(f"✅ Added question {next_id}: {text[:50]}...")
+    print(f"Added question {next_id}: {text[:50]}...")
     return True
 
 def edit_question(config_data):
@@ -89,11 +89,11 @@ def edit_question(config_data):
     try:
         question_num = int(input("\nEnter question number to edit (1-{}): ".format(len(config_data["questions"]))))
         if question_num < 1 or question_num > len(config_data["questions"]):
-            print("❌ Invalid question number")
+            print("Invalid question number")
             return False
         
         question = config_data["questions"][question_num - 1]
-        print(f"\n📝 Editing question {question_num}: {question['text']}")
+        print(f"\nEditing question {question_num}: {question['text']}")
         
         # Edit fields
         new_text = input(f"New text (current: {question['text']}): ").strip()
@@ -109,11 +109,11 @@ def edit_question(config_data):
         if toggle == 'y':
             question['active'] = not question.get('active', True)
         
-        print(f"✅ Question {question_num} updated successfully!")
+        print(f"Question {question_num} updated successfully!")
         return True
         
     except ValueError:
-        print("❌ Please enter a valid number")
+        print("Please enter a valid number")
         return False
 
 def delete_question(config_data):
@@ -123,7 +123,7 @@ def delete_question(config_data):
     try:
         question_num = int(input("\nEnter question number to delete (1-{}): ".format(len(config_data["questions"]))))
         if question_num < 1 or question_num > len(config_data["questions"]):
-            print("❌ Invalid question number")
+            print("Invalid question number")
             return False
         
         question = config_data["questions"][question_num - 1]
@@ -132,19 +132,19 @@ def delete_question(config_data):
         if confirm == 'y':
             deleted = config_data["questions"].pop(question_num - 1)
             config_data["metadata"]["total_questions"] = len(config_data["questions"])
-            print(f"✅ Deleted question: {deleted['text'][:50]}...")
+            print(f"Deleted question: {deleted['text'][:50]}...")
             return True
         else:
-            print("❌ Deletion cancelled")
+            print("Deletion cancelled")
             return False
             
     except ValueError:
-        print("❌ Please enter a valid number")
+        print("Please enter a valid number")
         return False
 
 def reorder_questions(config_data):
     """Reorder questions by ID"""
-    print("\n🔄 Reordering questions...")
+    print("\nReordering questions...")
     
     # Sort by ID
     config_data["questions"].sort(key=lambda x: x["id"])
@@ -153,17 +153,17 @@ def reorder_questions(config_data):
     for i, question in enumerate(config_data["questions"], 1):
         question["id"] = i
     
-    print("✅ Questions reordered successfully!")
+    print("Questions reordered successfully!")
     return True
 
 def main():
-    print("📝 Question Management Tool")
+    print("Question Management Tool")
     print("=" * 50)
     
     # Load config
     config_data = load_config()
     if not config_data:
-        print("❌ Could not load config file. Exiting.")
+        print("Could not load config file. Exiting.")
         sys.exit(1)
     
     while True:
@@ -183,42 +183,42 @@ def main():
             
         elif choice == "2":
             if add_question(config_data):
-                print("✅ Question added successfully!")
+                print("Question added successfully!")
             else:
-                print("❌ Failed to add question")
+                print("Failed to add question")
                 
         elif choice == "3":
             if edit_question(config_data):
-                print("✅ Question updated successfully!")
+                print("Question updated successfully!")
             else:
-                print("❌ Failed to update question")
+                print("Failed to update question")
                 
         elif choice == "4":
             if delete_question(config_data):
-                print("✅ Question deleted successfully!")
+                print("Question deleted successfully!")
             else:
-                print("❌ Failed to delete question")
+                print("Failed to delete question")
                 
         elif choice == "5":
             if reorder_questions(config_data):
-                print("✅ Questions reordered successfully!")
+                print("Questions reordered successfully!")
             else:
-                print("❌ Failed to reorder questions")
+                print("Failed to reorder questions")
                 
         elif choice == "6":
             if save_config(config_data):
-                print("✅ Config saved successfully!")
-                print("📱 Restart your server to apply changes!")
+                print("Config saved successfully!")
+                print("Restart your server to apply changes!")
                 break
             else:
-                print("❌ Failed to save config")
+                print("Failed to save config")
                 
         elif choice == "7":
-            print("👋 Exiting without saving changes...")
+            print("Exiting without saving changes...")
             break
             
         else:
-            print("❌ Invalid choice. Please enter 1-7.")
+            print("Invalid choice. Please enter 1-7.")
 
 if __name__ == "__main__":
     main()

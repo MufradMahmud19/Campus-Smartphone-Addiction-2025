@@ -31,14 +31,14 @@ def create_database():
         # Create database if it doesn't exist
         db_name = os.getenv("DB_NAME", "campus_smartphone_addiction")
         cursor.execute(f"CREATE DATABASE IF NOT EXISTS `{db_name}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
-        print(f"✅ Database '{db_name}' created/verified successfully!")
+        print(f" Database '{db_name}' created/verified successfully!")
         
         cursor.close()
         connection.close()
         return True
         
     except Exception as e:
-        print(f"❌ Error creating database: {e}")
+        print(f" Error creating database: {e}")
         return False
 
 def test_connection():
@@ -53,15 +53,15 @@ def test_connection():
         
         with engine.connect() as connection:
             result = connection.execute(text("SELECT 1"))
-            print("✅ Database connection test successful!")
+            print(" Database connection test successful!")
             return True
             
     except Exception as e:
-        print(f"❌ Database connection test failed: {e}")
+        print(f" Database connection test failed: {e}")
         return False
 
 def main():
-    print("🚀 Setting up Campus Smartphone Addiction Database...")
+    print(" Setting up Campus Smartphone Addiction Database...")
     print("=" * 50)
     
     # Check if required environment variables are set
@@ -69,10 +69,10 @@ def main():
     missing_vars = [var for var in required_vars if not os.getenv(var) or os.getenv(var) == "your_mysql_password_here"]
     
     if missing_vars:
-        print("❌ Missing or invalid environment variables:")
+        print(" Missing or invalid environment variables:")
         for var in missing_vars:
             print(f"   - {var}")
-        print("\n📝 Please update your .env file with correct database credentials.")
+        print("\n Please update your .env file with correct database credentials.")
         print("   You can copy database_config.env to .env and modify it.")
         return False
     
@@ -84,8 +84,8 @@ def main():
     if not test_connection():
         return False
     
-    print("\n🎉 Database setup completed successfully!")
-    print("📋 Next steps:")
+    print("\n Database setup completed successfully!")
+    print(" Next steps:")
     print("   1. Start your FastAPI server: uvicorn app.main:app --reload")
     print("   2. The server will automatically create the required tables")
     print("   3. Check the console output for any warnings or errors")

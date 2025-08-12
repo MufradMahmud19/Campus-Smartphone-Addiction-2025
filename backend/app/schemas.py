@@ -34,6 +34,27 @@ class QuestionOut(BaseModel):
     class Config:
         orm_mode = True
 
+class UserCreate(BaseModel):
+    age: str
+    gender: str
+    country: str
+    education: str
+    field: str
+    yearsOfStudy: str
+
+class UserOut(BaseModel):
+    id: int
+    usercode: str
+    age: str
+    gender: str
+    country: str
+    education: str
+    field: str
+    yearsOfStudy: str
+
+    class Config:
+        orm_mode = True
+
 class UserRegister(BaseModel):
     age: str
     gender: str

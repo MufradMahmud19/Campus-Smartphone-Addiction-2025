@@ -4,7 +4,8 @@ import string
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from .database import engine, get_db
+from .database import engine, get_db, test_connection
+from .question_manager import question_manager
 from . import models, schemas
 
 app = FastAPI()
@@ -17,75 +18,211 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-models.Base.metadata.create_all(bind=engine)
+# Test database connection and sync questions on startup
+@app.on_event("startup")
+async def startup_event():
+    print("🔌 Testing database connection...")
+    if not test_connection():
+        print("⚠️  Warning: Database connection failed. Some features may not work.")
+        return
+    
+    print("✅ Database connection established successfully!")
+    
+    # Ensure tables exist before syncing questions
+    try:
+        print("🔧 Checking database tables...")
+        from .database import SessionLocal
+        db = SessionLocal()
+        
+        # Check if questions table exists
+        try:
+            db.query(models.Question).first()
+            print("✅ Questions table exists, syncing questions...")
+            
+            # Sync questions from config file to database
+            sync_result = question_manager.sync_questions_to_db(db)
+            
+            if "error" not in sync_result:
+                print(f"✅ Questions synced: {sync_result['added']} added, {sync_result['updated']} updated, {sync_result['skipped']} skipped")
+            else:
+                print(f"⚠️  Question sync warning: {sync_result['error']}")
+                
+        except Exception as e:
+            print(f"⚠️  Questions table not found: {e}")
+            print("💡 Please run 'python recreate_tables.py' first to create the database tables")
+            
+        db.close()
+        
+    except Exception as e:
+        print(f"⚠️  Startup warning: {e}")
+
+# Note: Questions are automatically synced from config file on startup
+# Make sure to run 'python recreate_tables.py' first to create tables
 
 def generate_usercode(length=8):
-    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
+    """Generate a random usercode"""
+    characters = string.ascii_uppercase + string.digits
+    return ''.join(random.choice(characters) for _ in range(length))
 
-@app.get("/question_answers/{question_id}", response_model=list[schemas.UserResponseOut])
-def get_question_answers(question_id: int, db: Session = Depends(get_db)):
+@app.post("/register", response_model=schemas.UserOut)
+def register_user(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
+    """Register a new user"""
     try:
-        answers = db.query(models.UserResponse).filter(models.UserResponse.question_id == question_id).all()
-        print(f"[DEBUG] Fetching answers for question_id: {question_id}")
-        print(f"[DEBUG] Raw answers from DB: {answers}")
-        if not answers:
-            print(f"[DEBUG] No answers found for question_id {question_id}")
-            return []
-        return answers
+        # Generate unique usercode
+        usercode = generate_usercode()
+        
+        # Check if usercode already exists (very unlikely but safe)
+        while db.query(models.User).filter(models.User.usercode == usercode).first():
+            usercode = generate_usercode()
+        
+        # Create new user
+        new_user = models.User(
+            usercode=usercode,
+            age=user_data.age,
+            gender=user_data.gender,
+            country=user_data.country,
+            education=user_data.education,
+            field=user_data.field,
+            yearsOfStudy=user_data.yearsOfStudy
+        )
+        
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        
+        print(f"✅ New user registered: {usercode}")
+        return new_user
+        
     except Exception as e:
-        print(f"[ERROR] Exception in get_question_answers: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error.")
+        db.rollback()
+        print(f"❌ Error registering user: {e}")
+        raise HTTPException(status_code=500, detail=f"Error registering user: {str(e)}")
 
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to the Smartphone Usage Wizard API"}
+@app.get("/users", response_model=list[schemas.UserOut])
+def get_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    """Get all users"""
+    users = db.query(models.User).offset(skip).limit(limit).all()
+    return users
 
-@app.post("/answers", response_model=schemas.UserResponseOut)
-def create_user_response(response: schemas.UserResponseCreate, db: Session = Depends(get_db)):
-    db_response = models.UserResponse(
-        question_id=response.question_id,
-        answer=response.answer,
-        chat_history=""  # You can update this if you want to store chat
-    )
-    db.add(db_response)
-    db.commit()
-    db.refresh(db_response)
-    return db_response
+@app.get("/users/{usercode}", response_model=schemas.UserOut)
+def get_user(usercode: str, db: Session = Depends(get_db)):
+    """Get a specific user by usercode"""
+    user = db.query(models.User).filter(models.User.usercode == usercode).first()
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
 
-@app.get("/answers", response_model=list[schemas.UserResponseOut])
-def read_answers(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    return db.query(models.UserResponse).offset(skip).limit(limit).all()
+@app.get("/questions", response_model=list[schemas.QuestionOut])
+def get_questions(db: Session = Depends(get_db)):
+    """Get all questions"""
+    questions = db.query(models.Question).all()
+    return questions
 
 @app.post("/questions", response_model=schemas.QuestionOut)
 def create_question(question: schemas.QuestionCreate, db: Session = Depends(get_db)):
+    """Create a new question"""
     db_question = models.Question(text=question.text)
     db.add(db_question)
     db.commit()
     db.refresh(db_question)
     return db_question
 
-@app.get("/questions", response_model=list[schemas.QuestionOut])
-def get_questions(db: Session = Depends(get_db)):
-    return db.query(models.Question).all()
-
-@app.post("/register_user", response_model=schemas.UserCodeOut)
-def register_user(user: schemas.UserRegister, db: Session = Depends(get_db)):
-    usercode = generate_usercode()
-    db_user = models.User(
-        usercode=usercode,
-        age=user.age,
-        gender=user.gender,
-        country=user.country,
-        education=user.education,
-        field=user.field,
-        yearsOfStudy=user.yearsOfStudy
-    )
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return {"usercode": usercode}
-
 @app.post("/validate_usercode", response_model=schemas.UserCodeValidOut)
 def validate_usercode(data: schemas.UserCodeValidate, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.usercode == data.usercode).first()
     return {"valid": user is not None}
+
+@app.get("/questions/config")
+def get_questions_config():
+    """Get questions configuration and summary"""
+    return {
+        "config_summary": question_manager.get_questions_summary(),
+        "questions": question_manager.questions_data["questions"]
+    }
+
+@app.post("/questions/reload")
+def reload_questions_config():
+    """Reload questions from config file (useful for development)"""
+    success = question_manager.reload_config()
+    if success:
+        return {"message": "Questions config reloaded successfully", "status": "success"}
+    else:
+        raise HTTPException(status_code=500, detail="Failed to reload questions config")
+
+@app.post("/submit_survey")
+def submit_survey(payload: dict, db: Session = Depends(get_db)):
+    """
+    Submit complete survey data for a user
+    Expected payload: { "usercode": str, "answers": {question_id: int}, "completed_at": str }
+    """
+    try:
+        usercode = payload.get("usercode")
+        answers = payload.get("answers", {})
+        
+        if not usercode or not isinstance(answers, dict):
+            raise HTTPException(status_code=400, detail="Missing usercode or answers")
+
+        # Upsert per-question responses
+        for qid_str, answer in answers.items():
+            try:
+                qid = int(qid_str)
+            except (ValueError, TypeError):
+                qid = qid_str  # if already int
+            
+            # Check if response already exists
+            existing_response = db.query(models.UserResponse).filter(
+                models.UserResponse.usercode == usercode,
+                models.UserResponse.question_id == qid
+            ).first()
+            
+            if existing_response:
+                # Update existing response
+                existing_response.answer = int(answer)
+            else:
+                # Create new response
+                new_response = models.UserResponse(
+                    question_id=qid,
+                    answer=int(answer),
+                    usercode=usercode,
+                    chat_history=""
+                )
+                db.add(new_response)
+        
+        db.commit()
+        print(f"✅ Survey submitted successfully for user: {usercode}")
+        return {"status": "success", "message": "Survey submitted successfully"}
+        
+    except Exception as e:
+        db.rollback()
+        print(f"❌ Error submitting survey: {e}")
+        raise HTTPException(status_code=500, detail=f"Error submitting survey: {str(e)}")
+
+@app.get("/question_answers/{question_id}")
+def get_question_answers(question_id: int, db: Session = Depends(get_db)):
+    """Get all answers for a specific question from user_responses table"""
+    try:
+        # Fetch all responses for the given question_id
+        responses = db.query(models.UserResponse).filter(
+            models.UserResponse.question_id == question_id
+        ).all()
+        
+        # Extract just the answer values
+        answers = [response.answer for response in responses]
+        
+        print(f"✅ Fetched {len(answers)} answers for question {question_id}")
+        return answers
+        
+    except Exception as e:
+        print(f"❌ Error fetching question answers: {e}")
+        raise HTTPException(status_code=500, detail=f"Error fetching question answers: {str(e)}")
+
+# Placeholder endpoints for future features
+@app.get("/risk_radar")
+def get_risk_radar():
+    """Get risk radar data for visualization"""
+    return {"message": "Risk radar feature coming soon!"}
+
+@app.get("/percentiles")
+def get_percentiles():
+    """Get percentile data for peer comparison"""
+    return {"message": "Percentile feature coming soon!"}

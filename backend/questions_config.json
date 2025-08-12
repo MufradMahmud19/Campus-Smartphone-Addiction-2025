@@ -1,0 +1,71 @@
+{
+  "questions": [
+    {
+      "id": 1,
+      "text": "Missing planned work due to smartphone use",
+      "category": "productivity",
+      "active": true
+    },
+    {
+      "id": 2,
+      "text": "Having a hard time concentrating in class, while doing assignments, or while working due to smartphone use",
+      "category": "academic",
+      "active": true
+    },
+    {
+      "id": 3,
+      "text": "Feeling pain in the wrists or at the back of the neck while using a smartphone",
+      "category": "physical",
+      "active": true
+    },
+    {
+      "id": 4,
+      "text": "Won't be able to stand not having a smartphone",
+      "category": "dependency",
+      "active": true
+    },
+    {
+      "id": 5,
+      "text": "Feeling impatient and fretful (ill-tempered) when I am not holding my smartphone",
+      "category": "emotional",
+      "active": true
+    },
+    {
+      "id": 6,
+      "text": "Having my smartphone in my mind even when I am not using it",
+      "category": "psychological",
+      "active": true
+    },
+    {
+      "id": 7,
+      "text": "I will never give up using my smartphone even when my daily life is already greatly affected by it",
+      "category": "addiction",
+      "active": true
+    },
+    {
+      "id": 8,
+      "text": "Constantly checking my smartphone so as not to miss conversations between other people on Twitter or Facebook",
+      "category": "social",
+      "active": true
+    },
+    {
+      "id": 9,
+      "text": "Using my smartphone longer than I had intended",
+      "category": "time_management",
+      "active": true
+    },
+    {
+      "id": 10,
+      "text": "The people around me tell me that I use my smartphone too much",
+      "category": "social_feedback",
+      "active": true
+    }
+  ],
+  "metadata": {
+    "version": "1.0",
+    "last_updated": "2025-01-27",
+    "description": "Smartphone Addiction Scale (SAS) Questions for Campus Research",
+    "total_questions": 10,
+    "scale": "1-6 Likert Scale (Strongly Disagree to Strongly Agree)"
+  }
+}

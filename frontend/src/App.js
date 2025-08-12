@@ -1007,6 +1007,8 @@ export default function App() {
   const [showHelp, setShowHelp] = useState(false);
   const [chartData, setChartData] = useState([]);
   const [showChatBox, setShowChatBox] = useState({}); // Changed to object to track per question
+  const [chartLoading, setChartLoading] = useState(false);
+  const [chartError, setChartError] = useState(null);
 
   useEffect(() => {
     axios.get("http://localhost:8000/questions")
@@ -1041,27 +1043,45 @@ export default function App() {
         const current = steps[validStep];
         
         if (current && submittedQuestions.has(current.qIndex) && current.question_id) {
-          fetch(`http://localhost:8000/question_answers/${current.question_id}`)
-            .then(res => res.json())
-            .then(data => {
-              // Defensive: ensure data is an array
-              let arr = [];
-              if (Array.isArray(data)) {
-                arr = data.map(d => d.answer);
-              } else if (data && typeof data === 'object' && 'answer' in data) {
-                arr = [data.answer];
-              } else {
-                arr = [];
-              }
-              setChartData(arr);
-            })
-            .catch(() => {
-              setChartData([]);
-            });
+          fetchChartData(current.question_id);
         }
       }
     }
   }, [page, loading, questions, step, submittedQuestions]);
+
+  // Function to fetch chart data for a specific question
+  function fetchChartData(questionId) {
+    setChartLoading(true);
+    setChartError(null);
+    
+    fetch(`http://localhost:8000/question_answers/${questionId}`)
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        // Defensive: ensure data is an array
+        let arr = [];
+        if (Array.isArray(data)) {
+          // The backend now returns a simple array of integers
+          arr = data;
+        } else if (data && typeof data === 'object' && 'answer' in data) {
+          arr = [data.answer];
+        } else {
+          arr = [];
+        }
+        setChartData(arr);
+        setChartLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching chart data:", error);
+        setChartError(error.message);
+        setChartData([]);
+        setChartLoading(false);
+      });
+  }
 
   // Onboarding pages
   if (page === 0) return <FrontPage onNext={setPage} />;
@@ -1101,7 +1121,7 @@ export default function App() {
         if (pendingDemographics) {
           try {
             console.log("Registering user with data:", pendingDemographics);
-            const res = await axios.post("http://localhost:8000/register_user", pendingDemographics);
+            const res = await axios.post("http://localhost:8000/register", pendingDemographics);
             console.log("Registration response:", res.data);
             setUsercode(res.data.usercode);
             setPendingDemographics(null);
@@ -1349,18 +1369,79 @@ export default function App() {
               marginBottom: "20px"
             }}>
               {/* Graph and Feedback Side by Side */}
-              <div style={{ display: "flex", gap: "30px", alignItems: "flex-start" }}>
+              <div style={{ 
+                display: "flex", 
+                flexDirection: "column",
+                gap: "30px", 
+                alignItems: "stretch"
+              }}>
                 {/* Graph Section */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <h3 style={{ margin: "0 0 15px 0", color: "#333", fontSize: "18px" }}>Answer Distribution</h3>
-                  <AnswerDistributionChart 
-                    answers={chartData} 
-                    userAnswer={answers[current.qIndex]} 
-                  />
+                <div style={{ width: "100%" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 15 }}>
+                    <h3 style={{ margin: 0, color: "#333", fontSize: "18px" }}>Answer Distribution</h3>
+                    <button
+                      onClick={() => fetchChartData(current.question_id)}
+                      disabled={chartLoading}
+                      style={{
+                        padding: "6px 12px",
+                        fontSize: "12px",
+                        backgroundColor: chartLoading ? "#ccc" : "#007bff",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "4px",
+                        cursor: chartLoading ? "not-allowed" : "pointer",
+                        transition: "all 0.3s ease"
+                      }}
+                      title="Refresh chart data"
+                    >
+                      {chartLoading ? "Loading..." : "🔄"}
+                    </button>
+                  </div>
+                  
+                  {chartLoading && (
+                    <div style={{ 
+                      background: "#f9f9f9", 
+                      border: "1px solid #ddd", 
+                      borderRadius: 10, 
+                      padding: 20, 
+                      margin: "20px 0", 
+                      minHeight: 250,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center"
+                    }}>
+                      <div style={{ color: "#666", fontSize: "16px" }}>Loading chart data...</div>
+                    </div>
+                  )}
+                  
+                  {chartError && (
+                    <div style={{ 
+                      background: "#f9f9f9", 
+                      border: "1px solid #ddd", 
+                      borderRadius: 10, 
+                      padding: 20, 
+                      margin: "20px 0", 
+                      minHeight: 250,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center"
+                    }}>
+                      <div style={{ color: "#ff4444", fontSize: "16px" }}>
+                        Error loading chart: {chartError}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {!chartLoading && !chartError && (
+                    <AnswerDistributionChart 
+                      answers={chartData} 
+                      userAnswer={answers[current.qIndex]} 
+                    />
+                  )}
                 </div>
 
                 {/* Feedback Section */}
-                <div style={{ flex: 1, minWidth: 300 }}>
+                <div style={{ width: "100%" }}>
                   <h3 style={{ margin: "0 0 15px 0", color: "#333", fontSize: "18px" }}>Feedback</h3>
                   <div style={{ 
                     padding: "15px",

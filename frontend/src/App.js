@@ -1066,7 +1066,7 @@ export default function App() {
         // Defensive: ensure data is an array
         let arr = [];
         if (Array.isArray(data)) {
-          // The backend now returns a simple array of integers
+          // The backend returns a simple array of integers from other users
           arr = data;
         } else if (data && typeof data === 'object' && 'answer' in data) {
           arr = [data.answer];
@@ -1439,7 +1439,7 @@ export default function App() {
                   )}
                   
                   {!chartLoading && !chartError && (
-                    <div key={`${chartKey}-${current.qIndex}-${answers[current.qIndex]}`}>
+                    <div key={`chart-${current.qIndex}-${answers[current.qIndex]}-${chartKey}`}>
                       <AnswerDistributionChart 
                         answers={chartData} 
                         userAnswer={answers[current.qIndex]} 
@@ -1565,6 +1565,8 @@ export default function App() {
         return newSet;
       });
     }
+    // Force chart re-render when answer changes
+    setChartKey(k => k + 1);
   }
 
   function nextStep() {

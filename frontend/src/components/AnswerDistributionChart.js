@@ -5,16 +5,16 @@ import { Chart, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from "
 Chart.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 export default function AnswerDistributionChart({ answers, userAnswer }) {
-  // answers: array of integers (all answers for this question)
+  // answers: array of integers (all answers for this question from other users)
   // userAnswer: the current user's answer (integer)
   
   // Handle empty data case
   if (!answers || answers.length === 0) {
     return (
-      <div style={{ background: "#f9f9f9", border: "1px solid #ddd", borderRadius: 10, padding: 20, margin: "20px 0", minHeight: 250 }}>
+      <div style={{ background: "#f9f9f9", border: "1px solid #ddd", borderRadius: 10, padding: 16, margin: "16px 0", minHeight: 220 }}>
         <div style={{ fontWeight: "bold", marginBottom: 10 }}>How does your answer compare to others?</div>
         <div style={{ 
-          height: 180, 
+          height: 150, 
           display: "flex", 
           alignItems: "center", 
           justifyContent: "center",
@@ -24,7 +24,17 @@ export default function AnswerDistributionChart({ answers, userAnswer }) {
           No data available yet. Be the first to answer this question!
         </div>
         <div style={{ fontSize: 13, color: "#666", marginTop: 10 }}>
-          <span style={{ color: "#4CAF50", fontWeight: "bold" }}>Green</span> = Your answer
+          <span style={{ 
+            display: "inline-block",
+            width: "12px", 
+            height: "12px", 
+            borderRadius: "50%", 
+            backgroundColor: "#4CAF50", 
+            border: "2px solid white",
+            boxShadow: "0 1px 2px rgba(0,0,0,0.3)",
+            marginRight: "6px",
+            verticalAlign: "middle"
+          }}></span> = Your answer
         </div>
       </div>
     );
@@ -32,9 +42,8 @@ export default function AnswerDistributionChart({ answers, userAnswer }) {
 
   const counts = [1, 2, 3, 4, 5, 6].map(val => answers.filter(a => a === val).length);
   const normalizedUserAnswer = Number.isFinite(Number(userAnswer)) ? Math.max(1, Math.min(6, Number(userAnswer))) : 3;
-  const userIndex = normalizedUserAnswer - 1;
   const totalResponses = answers.length;
-  const userAnswerCount = counts[userIndex] ?? 0;
+  const userAnswerCount = counts[normalizedUserAnswer - 1] ?? 0;
   const userAnswerPercentage = totalResponses > 0 ? Math.round((userAnswerCount / totalResponses) * 100) : 0;
 
   const data = {
@@ -43,10 +52,10 @@ export default function AnswerDistributionChart({ answers, userAnswer }) {
       {
         label: "All Answers",
         data: counts,
-        backgroundColor: counts.map((_, i) => (i === userIndex ? "#4CAF50" : "#90caf9")),
+        backgroundColor: "#90caf9",
         borderWidth: 1,
-        borderColor: counts.map((_, i) => (i === userIndex ? "#2e7d32" : "#64b5f6")),
-        hoverBackgroundColor: counts.map((_, i) => (i === userIndex ? "#43a047" : "#64b5f6")),
+        borderColor: "#64b5f6",
+        hoverBackgroundColor: "#64b5f6",
         maxBarThickness: 22,
         categoryPercentage: 0.5,
         barPercentage: 0.8,
@@ -79,6 +88,11 @@ export default function AnswerDistributionChart({ answers, userAnswer }) {
     },
     responsive: true,
     maintainAspectRatio: false,
+    layout: {
+      padding: {
+        top: 30
+      }
+    }
   };
 
   return (
@@ -96,16 +110,42 @@ export default function AnswerDistributionChart({ answers, userAnswer }) {
       }}>
         <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "10px" }}>
           <div>Total responses: <strong>{totalResponses}</strong></div>
-          <div>Your answer: <strong style={{ color: "#4CAF50" }}>{userAnswer}/6</strong></div>
+          <div>Your answer: <strong style={{ color: "#4CAF50" }}>{normalizedUserAnswer}/6</strong></div>
         </div>
-        <div>People who chose {userAnswer}: <strong>{userAnswerCount}</strong> ({userAnswerPercentage}%)</div>
+        <div>People who chose {normalizedUserAnswer}: <strong>{userAnswerCount}</strong> ({userAnswerPercentage}%)</div>
       </div>
       
-      <div style={{ height: 150 }}>
+      <div style={{ height: 150, position: "relative" }}>
         <Bar data={data} options={options} />
+        
+        {/* User answer indicator - positioned above the correct bar */}
+        <div style={{
+          position: "absolute",
+          top: 5,
+          left: `${(normalizedUserAnswer ) * (100 / 6.55)}%`,
+          transform: "translateX(-50%)",
+          zIndex: 10,
+          width: "12px",
+          height: "12px",
+          borderRadius: "50%",
+          backgroundColor: "#4CAF50",
+          border: "2px solid white",
+          boxShadow: "0 2px 4px rgba(0,0,0,0.3)"
+        }} />
       </div>
+      
       <div style={{ fontSize: 13, color: "#666", marginTop: 10 }}>
-        <span style={{ color: "#4CAF50", fontWeight: "bold" }}>Green</span> = Your answer
+        <span style={{ 
+          display: "inline-block",
+          width: "12px", 
+          height: "12px", 
+          borderRadius: "50%", 
+          backgroundColor: "#4CAF50", 
+          border: "2px solid white",
+          boxShadow: "0 1px 2px rgba(0,0,0,0.3)",
+          marginRight: "6px",
+          verticalAlign: "middle"
+        }}></span> = Your answer
       </div>
     </div>
   );

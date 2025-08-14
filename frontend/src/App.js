@@ -884,7 +884,9 @@ function DemographicsPage({ onSubmit, onBack, usercode }) {
   );
 }
 
-function SurveyCompletionPage({ onReturnHome, usercode }) {
+function SurveyCompletionPage({ onReturnHome, usercode, answers }) {
+  // Calculate the sum of answers
+  const score = Array.isArray(answers) ? answers.reduce((a, b) => a + b, 0) : '--';
   return (
     <div className="responsive-page">
       <div className="responsive-header">
@@ -908,8 +910,7 @@ function SurveyCompletionPage({ onReturnHome, usercode }) {
         }}>
           <h3 style={{ margin: "0 0 12px 0", fontSize: "20px" }}>Your Survey Score</h3>
           <div style={{ fontSize: "32px", fontWeight: "bold", margin: "8px 0" }}>
-            {/* Placeholder for score - will be calculated later */}
-            <span style={{ opacity: 0.7 }}>--</span>
+            <span style={{ opacity: 1 }}>{score}</span>
           </div>
           <p style={{ margin: "8px 0 0 0", fontSize: "14px", opacity: 0.9 }}>
             Score is calculated based on your responses
@@ -1141,7 +1142,7 @@ export default function App() {
 
   // Survey completion page
   if (surveyCompleted) {
-    return <SurveyCompletionPage onReturnHome={() => { setSurveyCompleted(false); setPage(0); }} usercode={usercode} />;
+    return <SurveyCompletionPage onReturnHome={() => { setSurveyCompleted(false); setPage(0); }} usercode={usercode} answers={answers} />;
   }
 
   // Wizard logic

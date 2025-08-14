@@ -26,7 +26,7 @@ async def startup_event():
         print("⚠️  Warning: Database connection failed. Some features may not work.")
         return
     
-    print("✅ Database connection established successfully!")
+    print(" Database connection established successfully!")
     
     # Ensure tables exist before syncing questions
     try:
@@ -37,24 +37,24 @@ async def startup_event():
         # Check if questions table exists
         try:
             db.query(models.Question).first()
-            print("✅ Questions table exists, syncing questions...")
+            print(" Questions table exists, syncing questions...")
             
             # Sync questions from config file to database
             sync_result = question_manager.sync_questions_to_db(db)
             
             if "error" not in sync_result:
-                print(f"✅ Questions synced: {sync_result['added']} added, {sync_result['updated']} updated, {sync_result['skipped']} skipped")
+                print(f" Questions synced: {sync_result['added']} added, {sync_result['updated']} updated, {sync_result['skipped']} skipped")
             else:
-                print(f"⚠️  Question sync warning: {sync_result['error']}")
+                print(f"  Question sync warning: {sync_result['error']}")
                 
         except Exception as e:
-            print(f"⚠️  Questions table not found: {e}")
-            print("💡 Please run 'python recreate_tables.py' first to create the database tables")
+            print(f"  Questions table not found: {e}")
+            print(" Please run 'python recreate_tables.py' first to create the database tables")
             
         db.close()
         
     except Exception as e:
-        print(f"⚠️  Startup warning: {e}")
+        print(f"  Startup warning: {e}")
 
 # Note: Questions are automatically synced from config file on startup
 # Make sure to run 'python recreate_tables.py' first to create tables
@@ -90,12 +90,12 @@ def register_user(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(new_user)
         
-        print(f"✅ New user registered: {usercode}")
+        print(f" New user registered: {usercode}")
         return new_user
         
     except Exception as e:
         db.rollback()
-        print(f"❌ Error registering user: {e}")
+        print(f" Error registering user: {e}")
         raise HTTPException(status_code=500, detail=f"Error registering user: {str(e)}")
 
 @app.get("/users", response_model=list[schemas.UserOut])
@@ -162,39 +162,29 @@ def submit_survey(payload: dict, db: Session = Depends(get_db)):
         if not usercode or not isinstance(answers, dict):
             raise HTTPException(status_code=400, detail="Missing usercode or answers")
 
-        # Upsert per-question responses
+        # Create new responses for each question (allowing multiple responses per user)
         for qid_str, answer in answers.items():
             try:
                 qid = int(qid_str)
             except (ValueError, TypeError):
                 qid = qid_str  # if already int
             
-            # Check if response already exists
-            existing_response = db.query(models.UserResponse).filter(
-                models.UserResponse.usercode == usercode,
-                models.UserResponse.question_id == qid
-            ).first()
-            
-            if existing_response:
-                # Update existing response
-                existing_response.answer = int(answer)
-            else:
-                # Create new response
-                new_response = models.UserResponse(
-                    question_id=qid,
-                    answer=int(answer),
-                    usercode=usercode,
-                    chat_history=""
-                )
-                db.add(new_response)
+            # Always create a new response (timestamp will be automatically set)
+            new_response = models.UserResponse(
+                question_id=qid,
+                answer=int(answer),
+                usercode=usercode,
+                chat_history=""
+            )
+            db.add(new_response)
         
         db.commit()
-        print(f"✅ Survey submitted successfully for user: {usercode}")
+        print(f" Survey submitted successfully for user: {usercode}")
         return {"status": "success", "message": "Survey submitted successfully"}
         
     except Exception as e:
         db.rollback()
-        print(f"❌ Error submitting survey: {e}")
+        print(f" Error submitting survey: {e}")
         raise HTTPException(status_code=500, detail=f"Error submitting survey: {str(e)}")
 
 @app.get("/question_answers/{question_id}")
@@ -209,12 +199,87 @@ def get_question_answers(question_id: int, db: Session = Depends(get_db)):
         # Extract just the answer values
         answers = [response.answer for response in responses]
         
-        print(f"✅ Fetched {len(answers)} answers for question {question_id}")
+        print(f" Fetched {len(answers)} answers for question {question_id}")
         return answers
         
     except Exception as e:
-        print(f"❌ Error fetching question answers: {e}")
+        print(f" Error fetching question answers: {e}")
         raise HTTPException(status_code=500, detail=f"Error fetching question answers: {str(e)}")
+
+@app.get("/user_responses/{usercode}")
+def get_user_responses(usercode: str, db: Session = Depends(get_db)):
+    """Get all responses for a specific user with timestamps"""
+    try:
+        # Fetch all responses for the given usercode, ordered by timestamp
+        responses = db.query(models.UserResponse).filter(
+            models.UserResponse.usercode == usercode
+        ).order_by(models.UserResponse.timestamp.desc()).all()
+        
+        # Format response data
+        response_data = []
+        for response in responses:
+            response_data.append({
+                "id": response.id,
+                "question_id": response.question_id,
+                "answer": response.answer,
+                "timestamp": response.timestamp.isoformat() if response.timestamp else None,
+                "chat_history": response.chat_history
+            })
+        
+        print(f" Fetched {len(response_data)} responses for user {usercode}")
+        return {
+            "usercode": usercode,
+            "total_responses": len(response_data),
+            "responses": response_data
+        }
+        
+    except Exception as e:
+        print(f" Error fetching user responses: {e}")
+        raise HTTPException(status_code=500, detail=f"Error fetching user responses: {str(e)}")
+
+@app.get("/user_latest_responses/{usercode}")
+def get_user_latest_responses(usercode: str, db: Session = Depends(get_db)):
+    """Get the latest response for each question for a specific user"""
+    try:
+        # Get the latest response for each question using a subquery
+        from sqlalchemy import func
+        
+        # Subquery to get the latest timestamp for each question
+        latest_timestamps = db.query(
+            models.UserResponse.question_id,
+            func.max(models.UserResponse.timestamp).label('latest_timestamp')
+        ).filter(
+            models.UserResponse.usercode == usercode
+        ).group_by(models.UserResponse.question_id).subquery()
+        
+        # Get the actual responses with the latest timestamps
+        latest_responses = db.query(models.UserResponse).join(
+            latest_timestamps,
+            (models.UserResponse.question_id == latest_timestamps.c.question_id) &
+            (models.UserResponse.timestamp == latest_timestamps.c.latest_timestamp)
+        ).filter(
+            models.UserResponse.usercode == usercode
+        ).all()
+        
+        # Format response data
+        response_data = {}
+        for response in latest_responses:
+            response_data[response.question_id] = {
+                "id": response.id,
+                "answer": response.answer,
+                "timestamp": response.timestamp.isoformat() if response.timestamp else None,
+                "chat_history": response.chat_history
+            }
+        
+        print(f" Fetched latest responses for {len(response_data)} questions for user {usercode}")
+        return {
+            "usercode": usercode,
+            "latest_responses": response_data
+        }
+        
+    except Exception as e:
+        print(f" Error fetching user latest responses: {e}")
+        raise HTTPException(status_code=500, detail=f"Error fetching user latest responses: {str(e)}")
 
 # Placeholder endpoints for future features
 @app.get("/risk_radar")

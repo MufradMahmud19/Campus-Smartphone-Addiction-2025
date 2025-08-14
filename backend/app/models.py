@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
+from datetime import datetime
 from .database import Base
 
 class Question(Base):
@@ -14,6 +15,7 @@ class UserResponse(Base):
     answer = Column(Integer)
     chat_history = Column(Text)
     usercode = Column(String(50), ForeignKey("users.usercode"))  # FK references User.usercode
+    timestamp = Column(DateTime, default=datetime.utcnow)  # Timestamp for tracking when response was given
 
     # Relationship back to User:
     user = relationship("User", back_populates="responses")

@@ -21,10 +21,10 @@ class QuestionManager:
             with open(config_file, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except FileNotFoundError:
-            print(f"⚠️  Config file {self.config_path} not found. Using default questions.")
+            print(f"  Config file {self.config_path} not found. Using default questions.")
             return self.get_default_questions()
         except json.JSONDecodeError as e:
-            print(f"❌ Error parsing config file: {e}. Using default questions.")
+            print(f" Error parsing config file: {e}. Using default questions.")
             return self.get_default_questions()
     
     def get_default_questions(self) -> dict:
@@ -54,7 +54,7 @@ class QuestionManager:
     def sync_questions_to_db(self, db: Session) -> dict:
         """Sync questions from config file to database"""
         try:
-            print("🔄 Syncing questions from config file to database...")
+            print(" Syncing questions from config file to database...")
             
             # Get existing questions from database
             existing_questions = {q.text: q for q in db.query(models.Question).all()}
@@ -74,7 +74,7 @@ class QuestionManager:
                     if existing.id != question_id:
                         existing.id = question_id
                         updated_count += 1
-                        print(f"   🔄 Updated question {question_id}: {question_text[:50]}...")
+                        print(f"    Updated question {question_id}: {question_text[:50]}...")
                     else:
                         skipped_count += 1
                 else:
@@ -85,12 +85,12 @@ class QuestionManager:
                     )
                     db.add(new_question)
                     added_count += 1
-                    print(f"   ✅ Added question {question_id}: {question_text[:50]}...")
+                    print(f"    Added question {question_id}: {question_text[:50]}...")
             
             # Commit changes
             db.commit()
             
-            print(f"✅ Sync completed: {added_count} added, {updated_count} updated, {skipped_count} skipped")
+            print(f" Sync completed: {added_count} added, {updated_count} updated, {skipped_count} skipped")
             
             return {
                 "added": added_count,
@@ -101,7 +101,7 @@ class QuestionManager:
             
         except Exception as e:
             db.rollback()
-            print(f"❌ Error syncing questions: {e}")
+            print(f" Error syncing questions: {e}")
             return {"error": str(e)}
     
     def get_questions_summary(self) -> dict:
@@ -117,10 +117,10 @@ class QuestionManager:
         """Reload config file (useful for development)"""
         try:
             self.questions_data = self.load_config()
-            print("✅ Config file reloaded successfully")
+            print(" Config file reloaded successfully")
             return True
         except Exception as e:
-            print(f"❌ Error reloading config: {e}")
+            print(f" Error reloading config: {e}")
             return False
 
 # Global instance

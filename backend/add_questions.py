@@ -83,7 +83,7 @@ def main():
             add_multiple_questions()
             
         elif choice == "3":
-            print("👋 Goodbye!")
+            print(" Goodbye!")
             break
             
         else:

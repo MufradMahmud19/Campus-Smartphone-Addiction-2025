@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import List, Optional
+from datetime import datetime
 
 class ChatMessage(BaseModel):
     role: str
@@ -20,6 +21,7 @@ class UserResponseOut(BaseModel):
     id: int
     question_id: int
     answer: int
+    timestamp: datetime
 
     class Config:
         orm_mode = True

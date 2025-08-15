@@ -1173,29 +1173,36 @@ export default function App() {
 
   return (
     <div className="responsive-page">
-      <div className="responsive-header" style={{ display: "flex", alignItems: "center", paddingRight: 16 }}>
-        <HomeLogo onHome={() => setPage(0)} disabled={true} />
-        <div style={{ flex: 1 }} />
-        <button
-          aria-label="Show help"
-          onClick={() => setShowHelp(true)}
-          style={{
-            background: "#e3f2fd",
-            border: "none",
-            borderRadius: "50%",
-            width: 38,
-            height: 38,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 22,
-            color: "#1976d2",
-            cursor: "pointer",
-            boxShadow: "0 2px 8px #e3f2fd"
-          }}
-        >
-          ?
-        </button>
+             <div className="responsive-header" style={{ 
+         display: "flex", 
+         alignItems: "center", 
+         paddingRight: 16,
+         maxWidth: current && submittedQuestions.has(current.qIndex) ? "1200px" : "650px",
+         margin: "0 auto",
+         width: "100%"
+       }}>
+         <HomeLogo onHome={() => setPage(0)} disabled={true} />
+         <div style={{ flex: 1 }} />
+         <button
+           aria-label="Show help"
+           onClick={() => setShowHelp(true)}
+           style={{
+             background: "#e3f2fd",
+             border: "none",
+             borderRadius: "50%",
+             width: 38,
+             height: 38,
+             display: "flex",
+             alignItems: "center",
+             justifyContent: "center",
+             fontSize: 22,
+             color: "#1976d2",
+             cursor: "pointer",
+             boxShadow: "0 2px 8px #e3f2fd"
+           }}
+         >
+           ?
+         </button>
         <HelpModal open={showHelp} onClose={() => setShowHelp(false)}>
           <h2 style={{textAlign: "center", color: "#1976d2", marginBottom: 12}}>About the System</h2>
           <h3 style={{textAlign: "center", marginTop: 0, color: "#333"}}>Smartphone Wizard</h3>
@@ -1223,321 +1230,345 @@ export default function App() {
           📞 +358 44 2461130</p>
         </HelpModal>
       </div>
-      <div className="responsive-card" style={{ padding: 16 }}>
-        <div style={{ textAlign: "right", marginTop: "40px"}}>
-        {usercode && <div style={{ margin: "16px 0", fontWeight: "bold" }}>Your User Code: {usercode}</div>}
-        </div>
-        
-        {/* Progress Bar with Navigation */}
-        <div style={{ marginBottom: 30 }}>
-          <div style={{ 
-            display: "flex", 
-            alignItems: "center", 
-            justifyContent: "space-between",
-            marginBottom: 15
-          }}>
-            <button 
-              onClick={prevStep}
-              disabled={step === 0}
-              style={{
-                padding: "8px 12px",
-                fontSize: "18px",
-                backgroundColor: step === 0 ? "#cccccc" : "#4CAF50",
-                color: "white",
-                border: "none",
-                borderRadius: "6px",
-                cursor: step === 0 ? "not-allowed" : "pointer",
-                transition: "all 0.3s ease",
-                fontWeight: "bold",
-                opacity: step === 0 ? 0.5 : 1
-              }}
-              onMouseOver={(e) => {
-                if (step !== 0) {
-                  e.target.style.transform = "translateY(-2px)";
-                  e.target.style.boxShadow = "0 4px 15px rgba(76, 175, 80, 0.3)";
-                }
-              }}
-              onMouseOut={(e) => {
-                e.target.style.transform = "translateY(0)";
-                e.target.style.boxShadow = "none";
-              }}
-            >
-              ←
-            </button>
-            
-            <div style={{ flex: 1, margin: "0 20px" }}>
-              <div style={{ 
-                display: "flex", 
-                justifyContent: "space-between", 
-                alignItems: "center", 
-                marginBottom: 8 
-              }}>
-                <span style={{ fontSize: "18px", fontWeight: "bold" }}>
-                  {currentQuestionNumber}/10
-                </span>
-                <span style={{ fontSize: "14px", color: "#666" }}>
-                  {Math.round((currentQuestionNumber / 10) * 100)}% Complete
-                </span>
-              </div>
-              <div style={{ 
-                width: "100%", 
-                height: "12px", 
-                backgroundColor: "#f0f0f0", 
-                borderRadius: "6px", 
-                overflow: "hidden" 
-              }}>
-                <div style={{ 
-                  width: `${(currentQuestionNumber / 10) * 100}%`, 
-                  height: "100%", 
-                  backgroundColor: "#4CAF50", 
-                  transition: "width 0.3s ease" 
-                }} />
-              </div>
-            </div>
-            
-            <button 
-              onClick={nextStep}
-              disabled={!submittedQuestions.has(current.qIndex) || step === steps.length - 1}
-              style={{
-                padding: "8px 12px",
-                fontSize: "18px",
-                backgroundColor: (!submittedQuestions.has(current.qIndex) || step === steps.length - 1) ? "#cccccc" : "#4CAF50",
-                color: "white",
-                border: "none",
-                borderRadius: "6px",
-                cursor: (!submittedQuestions.has(current.qIndex) || step === steps.length - 1) ? "not-allowed" : "pointer",
-                transition: "all 0.3s ease",
-                fontWeight: "bold",
-                opacity: (!submittedQuestions.has(current.qIndex) || step === steps.length - 1) ? 0.5 : 1
-              }}
-              onMouseOver={(e) => {
-                if (submittedQuestions.has(current.qIndex) && step !== steps.length - 1) {
-                  e.target.style.transform = "translateY(-2px)";
-                  e.target.style.boxShadow = "0 4px 15px rgba(76, 175, 80, 0.3)";
-                }
-              }}
-              onMouseOut={(e) => {
-                e.target.style.transform = "translateY(0)";
-                e.target.style.boxShadow = "none";
-              }}
-            >
-              →
-            </button>
-          </div>
-        </div>
-
-        {/* Main Content Area */}
-        <div>
-          {/* Question Section */}
-          <div style={{ marginBottom: "20px" }}>
-            {current && (
-              <WizardStep
-                key={`question-${current.qIndex}-${submittedQuestions.has(current.qIndex)}`}
-                question={current.question}
-                value={answers[current.qIndex]}
-                onChange={handleAnswerChange}
-                conversation={chats[current.qIndex] || []}
-                onSendChat={handleSendChat}
-                showChat={false}
-                 onSubmit={() => {
-                  // Mark this question as submitted
-                  setSubmittedQuestions(prev => new Set([...prev, current.qIndex]));
-                  // Show feedback after submitting
-                  setChats(current => 
-                    current.map((c, i) => 
-                      i === current.qIndex 
-                        ? [{ role: "AI", text: `Thank you for your answer! Your response was ${answers[current.qIndex]}/6. Is there anything you'd like to discuss about this question?` }]
-                        : c
-                    )
-                  );
-                   // Immediately refresh chart and force re-render keyed by current answer
-                   if (current.question_id) {
-                     fetchChartData(current.question_id);
-                     setChartKey(k => k + 1);
+             <div style={{ 
+         display: "flex", 
+         gap: "20px", 
+         alignItems: "flex-start",
+         maxWidth: "1200px",
+         margin: "0 auto"
+       }}>
+         {/* Main Content Area */}
+         <div className="responsive-card" style={{ padding: 16, flex: 1 }}>
+           <div style={{ textAlign: "right", marginTop: "40px"}}>
+           {usercode && <div style={{ margin: "16px 0", fontWeight: "bold" }}>Your User Code: {usercode}</div>}
+           </div>
+           
+           {/* Progress Bar with Navigation */}
+           <div style={{ marginBottom: 30 }}>
+             <div style={{ 
+               display: "flex", 
+               alignItems: "center", 
+               justifyContent: "space-between",
+               marginBottom: 15
+             }}>
+               <button 
+                 onClick={prevStep}
+                 disabled={step === 0}
+                 style={{
+                   padding: "8px 12px",
+                   fontSize: "18px",
+                   backgroundColor: step === 0 ? "#cccccc" : "#4CAF50",
+                   color: "white",
+                   border: "none",
+                   borderRadius: "6px",
+                   cursor: step === 0 ? "not-allowed" : "pointer",
+                   transition: "all 0.3s ease",
+                   fontWeight: "bold",
+                   opacity: step === 0 ? 0.5 : 1
+                 }}
+                 onMouseOver={(e) => {
+                   if (step !== 0) {
+                     e.target.style.transform = "translateY(-2px)";
+                     e.target.style.boxShadow = "0 4px 15px rgba(76, 175, 80, 0.3)";
                    }
-                }}
-                onBack={prevStep}
-                onNext={nextStep}
-                isLastStep={step === steps.length - 1}
-                isSubmitted={submittedQuestions.has(current.qIndex)}
-                question_id={current.question_id}
-                showNavigation={false} // Hide navigation buttons in WizardStep since we have them in the progress bar
-              />
-            )}
-          </div>
+                 }}
+                 onMouseOut={(e) => {
+                   e.target.style.transform = "translateY(0)";
+                   e.target.style.boxShadow = "none";
+                 }}
+               >
+                 ←
+               </button>
+               
+               <div style={{ flex: 1, margin: "0 20px" }}>
+                 <div style={{ 
+                   display: "flex", 
+                   justifyContent: "space-between", 
+                   alignItems: "center", 
+                   marginBottom: 8 
+                 }}>
+                   <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+                     {currentQuestionNumber}/10
+                   </span>
+                   <span style={{ fontSize: "14px", color: "#666" }}>
+                     {Math.round((currentQuestionNumber / 10) * 100)}% Complete
+                   </span>
+                 </div>
+                 <div style={{ 
+                   width: "100%", 
+                   height: "12px", 
+                   backgroundColor: "#f0f0f0", 
+                   borderRadius: "6px", 
+                   overflow: "hidden" 
+                 }}>
+                   <div style={{ 
+                     width: `${(currentQuestionNumber / 10) * 100}%`, 
+                     height: "100%", 
+                     backgroundColor: "#4CAF50", 
+                     transition: "width 0.3s ease" 
+                   }} />
+                 </div>
+               </div>
+               
+               <button 
+                 onClick={nextStep}
+                 disabled={!submittedQuestions.has(current.qIndex) || step === steps.length - 1}
+                 style={{
+                   padding: "8px 12px",
+                   fontSize: "18px",
+                   backgroundColor: (!submittedQuestions.has(current.qIndex) || step === steps.length - 1) ? "#cccccc" : "#4CAF50",
+                   color: "white",
+                   border: "none",
+                   borderRadius: "6px",
+                   cursor: (!submittedQuestions.has(current.qIndex) || step === steps.length - 1) ? "not-allowed" : "pointer",
+                   transition: "all 0.3s ease",
+                   fontWeight: "bold",
+                   opacity: (!submittedQuestions.has(current.qIndex) || step === steps.length - 1) ? 0.5 : 1
+                 }}
+                 onMouseOver={(e) => {
+                   if (submittedQuestions.has(current.qIndex) && step !== steps.length - 1) {
+                     e.target.style.transform = "translateY(-2px)";
+                     e.target.style.boxShadow = "0 4px 15px rgba(76, 175, 80, 0.3)";
+                   }
+                 }}
+                 onMouseOut={(e) => {
+                   e.target.style.transform = "translateY(0)";
+                   e.target.style.boxShadow = "none";
+                 }}
+               >
+                 →
+               </button>
+             </div>
+           </div>
 
-          {/* Graph and Feedback Section (only show after submit) */}
+           {/* Progressive Container Layout */}
+           <div style={{ 
+             display: "flex",
+             flexDirection: "column",
+             gap: "20px",
+             marginTop: "20px"
+           }}>
+             
+             {/* Container 1: Question Section - Always visible */}
+             <div style={{ 
+               padding: "20px",
+               backgroundColor: "white",
+               borderRadius: "12px",
+               border: "1px solid #e9ecef",
+               boxShadow: "0 4px 15px rgba(0,0,0,0.1)"
+             }}>
+               {current && (
+                 <WizardStep
+                   key={`question-${current.qIndex}-${submittedQuestions.has(current.qIndex)}`}
+                   question={current.question}
+                   value={answers[current.qIndex]}
+                   onChange={handleAnswerChange}
+                   conversation={chats[current.qIndex] || []}
+                   onSendChat={handleSendChat}
+                   showChat={false}
+                    onSubmit={() => {
+                     // Mark this question as submitted
+                     setSubmittedQuestions(prev => new Set([...prev, current.qIndex]));
+                     // Show feedback after submitting
+                     setChats(current => 
+                       current.map((c, i) => 
+                         i === current.qIndex 
+                           ? [{ role: "AI", text: `Thank you for your answer! Your response was ${answers[current.qIndex]}/6. Is there anything you'd like to discuss about this question?` }]
+                           : c
+                       )
+                     );
+                      // Immediately refresh chart and force re-render keyed by current answer
+                      if (current.question_id) {
+                        fetchChartData(current.question_id);
+                        setChartKey(k => k + 1);
+                      }
+                   }}
+                   onBack={prevStep}
+                   onNext={nextStep}
+                   isLastStep={step === steps.length - 1}
+                   isSubmitted={submittedQuestions.has(current.qIndex)}
+                   question_id={current.question_id}
+                   showNavigation={false} // Hide navigation buttons in WizardStep since we have them in the progress bar
+                 />
+               )}
+             </div>
+
+                                         {/* Container 2: Graph Section - Only show after submit */}
+               {current && submittedQuestions.has(current.qIndex) && (
+                 <div style={{ 
+                   padding: "20px",
+                   backgroundColor: "white",
+                   borderRadius: "12px",
+                   border: "1px solid #e9ecef",
+                   boxShadow: "0 4px 15px rgba(0,0,0,0.1)"
+                 }}>
+                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 15 }}>
+                     <h3 style={{ margin: 0, color: "#333", fontSize: "18px" }}>Answer Distribution</h3>
+                     <button
+                       onClick={() => fetchChartData(current.question_id)}
+                       disabled={chartLoading}
+                       style={{
+                         padding: "6px 12px",
+                         fontSize: "12px",
+                         backgroundColor: chartLoading ? "#ccc" : "#007bff",
+                         color: "white",
+                         border: "none",
+                         borderRadius: "4px",
+                         cursor: chartLoading ? "not-allowed" : "pointer",
+                         transition: "all 0.3s ease"
+                       }}
+                       title="Refresh chart data"
+                     >
+                       {chartLoading ? "Loading..." : "🔄"}
+                     </button>
+                   </div>
+                   
+                   {chartLoading && (
+                     <div style={{ 
+                       background: "#f9f9f9", 
+                       border: "1px solid #ddd", 
+                       borderRadius: 10, 
+                       padding: 20, 
+                       margin: "20px 0", 
+                       minHeight: 250,
+                       display: "flex",
+                       alignItems: "center",
+                       justifyContent: "center"
+                     }}>
+                       <div style={{ color: "#666", fontSize: "16px" }}>Loading chart data...</div>
+                     </div>
+                   )}
+                   
+                   {chartError && (
+                     <div style={{ 
+                       background: "#f9f9f9", 
+                       border: "1px solid #ddd", 
+                       borderRadius: 10, 
+                       padding: 20, 
+                       margin: "20px 0", 
+                       minHeight: 250,
+                       display: "flex",
+                       alignItems: "center",
+                       justifyContent: "center"
+                     }}>
+                       <div style={{ color: "#ff4444", fontSize: "16px" }}>
+                         Error loading chart: {chartError}
+                       </div>
+                     </div>
+                   )}
+                   
+                   {!chartLoading && !chartError && (
+                     <div key={`chart-${current.qIndex}-${answers[current.qIndex]}-${chartKey}`}>
+                       <AnswerDistributionChart 
+                         answers={chartData} 
+                         userAnswer={answers[current.qIndex]} 
+                       />
+                     </div>
+                   )}
+
+                   
+
+                   {/* Finish Survey Button (only on last page) */}
+                   {current && step === steps.length - 1 && submittedQuestions.has(current.qIndex) && (
+                     <div style={{ marginTop: 30, textAlign: "center" }}>
+                       <button 
+                         onClick={handleFinishSurvey}
+                         style={{ 
+                           padding: "15px 30px", 
+                           fontSize: "18px", 
+                           backgroundColor: "#4CAF50", 
+                           color: "white", 
+                           border: "none", 
+                           borderRadius: "8px",
+                           cursor: "pointer",
+                           boxShadow: "0 4px 15px rgba(76, 175, 80, 0.3)",
+                           transition: "all 0.3s ease",
+                           fontWeight: "bold"
+                         }}
+                         onMouseOver={(e) => {
+                           e.target.style.transform = "translateY(-2px)";
+                           e.target.style.boxShadow = "0 6px 20px rgba(76, 175, 80, 0.4)";
+                         }}
+                         onMouseOut={(e) => {
+                           e.target.style.transform = "translateY(0)";
+                           e.target.style.boxShadow = "0 4px 15px rgba(76, 175, 80, 0.3)";
+                         }}
+                       >
+                         Finish Survey
+                       </button>
+                     </div>
+                   )}
+                 </div>
+               )}
+           </div>
+                   </div>
+
+          {/* Container 3: Feedback Section - Only show after submit, positioned outside main wrapper */}
           {current && submittedQuestions.has(current.qIndex) && (
             <div style={{ 
-              padding: "16px",
-              backgroundColor: "#f8f9fa",
+              width: "300px",
+              padding: "20px",
+              backgroundColor: "white",
               borderRadius: "12px",
               border: "1px solid #e9ecef",
-              marginBottom: "20px"
+              boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+              alignSelf: "flex-start",
+              marginTop: "52px"
             }}>
-              {/* Graph and Feedback Side by Side */}
+              <h3 style={{ margin: "0 0 15px 0", color: "#333", fontSize: "18px" }}>Feedback</h3>
               <div style={{ 
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "16px",
-                alignItems: "start"
+                padding: "15px",
+                backgroundColor: "#f8f9fa",
+                borderRadius: "8px",
+                border: "1px solid #dee2e6",
+                marginBottom: "15px"
               }}>
-                {/* Graph Section */}
-                <div style={{ width: "100%" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 15 }}>
-                    <h3 style={{ margin: 0, color: "#333", fontSize: "18px" }}>Answer Distribution</h3>
-                    <button
-                      onClick={() => fetchChartData(current.question_id)}
-                      disabled={chartLoading}
-                      style={{
-                        padding: "6px 12px",
-                        fontSize: "12px",
-                        backgroundColor: chartLoading ? "#ccc" : "#007bff",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: chartLoading ? "not-allowed" : "pointer",
-                        transition: "all 0.3s ease"
-                      }}
-                      title="Refresh chart data"
-                    >
-                      {chartLoading ? "Loading..." : "🔄"}
-                    </button>
-                  </div>
-                  
-                  {chartLoading && (
-                    <div style={{ 
-                      background: "#f9f9f9", 
-                      border: "1px solid #ddd", 
-                      borderRadius: 10, 
-                      padding: 20, 
-                      margin: "20px 0", 
-                      minHeight: 250,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center"
-                    }}>
-                      <div style={{ color: "#666", fontSize: "16px" }}>Loading chart data...</div>
-                    </div>
-                  )}
-                  
-                  {chartError && (
-                    <div style={{ 
-                      background: "#f9f9f9", 
-                      border: "1px solid #ddd", 
-                      borderRadius: 10, 
-                      padding: 20, 
-                      margin: "20px 0", 
-                      minHeight: 250,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center"
-                    }}>
-                      <div style={{ color: "#ff4444", fontSize: "16px" }}>
-                        Error loading chart: {chartError}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {!chartLoading && !chartError && (
-                    <div key={`chart-${current.qIndex}-${answers[current.qIndex]}-${chartKey}`}>
-                      <AnswerDistributionChart 
-                        answers={chartData} 
-                        userAnswer={answers[current.qIndex]} 
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {/* Feedback Section */}
-                <div style={{ width: "100%" }}>
-                  <h3 style={{ margin: "0 0 15px 0", color: "#333", fontSize: "18px" }}>Feedback</h3>
-                  <div style={{ 
-                    padding: "15px",
-                    backgroundColor: "white",
-                    borderRadius: "8px",
-                    border: "1px solid #dee2e6",
-                    marginBottom: "15px"
-                  }}>
-                    <p style={{ margin: "0", color: "#666" }}>
-                      You have answered question {currentQuestionNumber} with a score of {answers[current.qIndex]}/6.
-                    </p>
-                  </div>
-                  
-                  {/* Start Chat Button */}
-                  <button
-                    onClick={() => setShowChatBox(prev => ({ ...prev, [current.qIndex]: true }))}
-                    style={{
-                      width: "100%",
-                      padding: "12px 20px",
-                      fontSize: "16px",
-                      backgroundColor: "#007bff",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "8px",
-                      cursor: "pointer",
-                      transition: "all 0.3s ease",
-                      fontWeight: "bold"
-                    }}
-                    onMouseOver={(e) => {
-                      e.target.style.transform = "translateY(-2px)";
-                      e.target.style.boxShadow = "0 4px 15px rgba(0, 123, 255, 0.3)";
-                    }}
-                    onMouseOut={(e) => {
-                      e.target.style.transform = "translateY(0)";
-                      e.target.style.boxShadow = "none";
-                    }}
-                  >
-                    Start Chat
-                  </button>
-                </div>
+                <p style={{ margin: "0", color: "#666" }}>
+                  You have answered question {currentQuestionNumber} with a score of {answers[current.qIndex]}/6.
+                </p>
               </div>
+              
+                             {/* Start Chat Button */}
+               <button
+                 onClick={() => setShowChatBox(prev => ({ ...prev, [current.qIndex]: true }))}
+                 style={{
+                   width: "100%",
+                   padding: "12px 20px",
+                   fontSize: "16px",
+                   backgroundColor: "#007bff",
+                   color: "white",
+                   border: "none",
+                   borderRadius: "8px",
+                   cursor: "pointer",
+                   transition: "all 0.3s ease",
+                   fontWeight: "bold"
+                 }}
+                 onMouseOver={(e) => {
+                   e.target.style.transform = "translateY(-2px)";
+                   e.target.style.boxShadow = "0 4px 15px rgba(0, 123, 255, 0.3)";
+                 }}
+                 onMouseOut={(e) => {
+                   e.target.style.transform = "translateY(0)";
+                   e.target.style.boxShadow = "none";
+                 }}
+               >
+                 Start Chat
+               </button>
 
-              {/* Chat Section (only show after clicking Start Chat) */}
-              {showChatBox[current.qIndex] && (
-                <div style={{ marginTop: "16px" }}>
-                  <h3 style={{ margin: "0 0 15px 0", color: "#333", fontSize: "18px" }}>Chat with AI</h3>
-                  <LLMChatBox 
-                    conversation={chats[current.qIndex] || []} 
-                    onSend={handleSendChat} 
-                  />
-                </div>
-              )}
+               {/* Chat Section (only show after clicking Start Chat) */}
+               {showChatBox[current.qIndex] && (
+                 <div style={{ marginTop: "16px" }}>
+                   <h3 style={{ margin: "0 0 15px 0", color: "#333", fontSize: "18px" }}>Chat with AI</h3>
+                   <LLMChatBox 
+                     conversation={chats[current.qIndex] || []} 
+                     onSend={handleSendChat} 
+                   />
+                 </div>
+               )}
             </div>
           )}
+                    
         </div>
-
-        {/* Finish Survey Button */}
-        {current && step === steps.length - 1 && submittedQuestions.has(current.qIndex) && (
-          <div style={{ marginTop: 30, textAlign: "center" }}>
-            <button 
-              onClick={handleFinishSurvey}
-              style={{ 
-                padding: "15px 30px", 
-                fontSize: "18px", 
-                backgroundColor: "#4CAF50", 
-                color: "white", 
-                border: "none", 
-                borderRadius: "8px",
-                cursor: "pointer",
-                boxShadow: "0 4px 15px rgba(76, 175, 80, 0.3)",
-                transition: "all 0.3s ease",
-                fontWeight: "bold"
-              }}
-              onMouseOver={(e) => {
-                e.target.style.transform = "translateY(-2px)";
-                e.target.style.boxShadow = "0 6px 20px rgba(76, 175, 80, 0.4)";
-              }}
-              onMouseOut={(e) => {
-                e.target.style.transform = "translateY(0)";
-                e.target.style.boxShadow = "0 4px 15px rgba(76, 175, 80, 0.3)";
-              }}
-            >
-              Finish Survey
-            </button>
-          </div>
-        )}
-      </div>
     </div>
   );
 

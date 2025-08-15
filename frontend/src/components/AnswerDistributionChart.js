@@ -122,7 +122,7 @@ export default function AnswerDistributionChart({ answers, userAnswer }) {
         <div style={{
           position: "absolute",
           top: 5,
-          left: `${(normalizedUserAnswer ) * (100 / 6.55)}%`,
+          left: `${(normalizedUserAnswer - 0.4) * (100 / 6)}%`,
           transform: "translateX(-50%)",
           zIndex: 10,
           width: "12px",

@@ -71,13 +71,14 @@ def recreate_tables():
             """))
             print("  Created table: users")
 
-            # Create user_responses table
+            # Create user_responses table (with timestamp column)
             connection.execute(text("""
                 CREATE TABLE user_responses (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     question_id INT NOT NULL,
                     answer INT NOT NULL,
                     chat_history TEXT,
+                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
                     usercode VARCHAR(50) NOT NULL,
                     INDEX idx_question_id (question_id),
                     INDEX idx_usercode (usercode),
@@ -85,7 +86,6 @@ def recreate_tables():
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             """))
             print("  Created table: user_responses")
-
             # Create user_chats table
             connection.execute(text("""
                 CREATE TABLE user_chats (
@@ -115,9 +115,11 @@ def recreate_tables():
             ]
 
             for i, question_text in enumerate(sample_questions, 1):
-                connection.execute(text("""
-                    INSERT INTO questions (id, text) VALUES (:id, :text)
-                """), {"id": i, "text": question_text})
+
+                connection.execute(
+                    text("INSERT INTO questions (id, text) VALUES (:id, :text)"),
+                    {"id": i, "text": question_text}
+                )
                 print(f"   Added question {i}: {question_text[:50]}...")
 
             print(f"Inserted {len(sample_questions)} sample questions!")

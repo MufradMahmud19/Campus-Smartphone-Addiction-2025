@@ -1,4 +1,3 @@
-
 import random
 import string
 from fastapi import FastAPI, Depends, HTTPException
@@ -10,6 +9,12 @@ from . import models, schemas
 
 app = FastAPI()
 
+origins = [
+    "http://localhost:3000",  # React dev server / Nginx
+    "http://127.0.0.1:3000",  # Alternative localhost
+    # "https://your-production-domain.com",  # add when deploying to cloud
+]
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,6 +22,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/")
+def read_root():
+    return {"message": "Backend is running with CORS enabled"}
 
 # Test database connection and sync questions on startup
 @app.on_event("startup")

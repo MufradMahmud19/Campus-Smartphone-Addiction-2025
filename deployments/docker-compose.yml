@@ -1,0 +1,59 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: deployments/backend.Dockerfile
+    container_name: campus_backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ../backend:/code
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: mysql+pymysql://user:password@mysql:3306/campus_smartphone_addiction
+    depends_on:
+      - mysql
+    networks:
+      - campus-net
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: deployments/frontend.Dockerfile
+    container_name: campus_frontend
+    volumes:
+      - ../frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:80"
+    environment:
+      REACT_APP_API_BASE: http://backend:8000
+    depends_on:
+      - backend
+    networks:
+      - campus-net
+
+  mysql:
+    image: mysql:8
+    container_name: campus_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: campus_smartphone_addiction
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - campus-net
+
+volumes:
+  mysql_data:
+
+networks:
+  campus-net:
+    driver: bridge

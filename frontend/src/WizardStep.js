@@ -4,8 +4,8 @@ export function WizardStep({ question, value, onChange, conversation, onSendChat
   return (
     <div style={{ 
       padding: 20, 
-      backgroundColor: "white", 
-      border: "1px solid #ddd", 
+      backgroundColor: "#fff", 
+      border: "2px solid #111", 
       borderRadius: 15, 
       maxWidth: 500,
       boxShadow: "0 4px 15px rgba(0,0,0,0.1)",

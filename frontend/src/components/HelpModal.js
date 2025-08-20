@@ -27,7 +27,8 @@ export default function HelpModal({ open, onClose, children }) {
         position: "relative",
         overflowY: "auto",
         fontSize: "clamp(1rem, 2vw, 1.15rem)",
-        color: "#1a237e"
+        color: "#1a237e",
+        border: "2px solid #111"
       }}>
         <button
           onClick={onClose}

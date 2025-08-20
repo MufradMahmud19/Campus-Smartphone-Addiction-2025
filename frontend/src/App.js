@@ -11,7 +11,7 @@ if (typeof window !== 'undefined') {
   const style = document.createElement('style');
   style.innerHTML = `
     html, body {
-      background: #B5D9FF !important;
+      background: #fff !important;
       min-height: 100vh;
       margin: 0;
       padding: 0;
@@ -32,27 +32,27 @@ if (typeof window !== 'undefined') {
       min-height: 60px;
       display: flex;
       align-items: center;
-      justify-content: flex-start;
-      padding: 24px 0 0 24px;
+      justify-content: space-between;
+      padding: 24px 24px 0 24px;
       box-sizing: border-box;
       position: relative;
       z-index: 2;
     }
     .responsive-card {
       width: 100%;
-      max-width: 650px;
-      margin: 32px auto 40px auto;
-      padding: 64px 5vw 4vw 5vw;
+      max-width: 680px;
+      margin: 24px auto 24px auto;
+      padding: 32px 3vw 3vw 3vw;
       background: #fff;
       border-radius: 24px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
       font-size: clamp(1rem, 2vw, 1.25rem);
       line-height: 1.7;
       color: #1a237e;
       position: relative;
       box-sizing: border-box;
       z-index: 1;
-      border: 1.5px solid #e3eafc;
+      border: none;
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.6); 
     }
     .responsive-card h1, .responsive-card h2 {
       margin-top: 0;
@@ -80,12 +80,12 @@ if (typeof window !== 'undefined') {
     }
     @media (max-width: 600px) {
       .responsive-card {
-        padding: 80px 2vw 5vw 2vw !important;
+        padding: 32px 2vw 3vw 2vw !important;
         border-radius: 12px !important;
-        margin: 0 0 24px 0 !important;
+        margin: 0 0 16px 0 !important;
       }
       .responsive-header {
-        padding: 12px 0 0 12px;
+        padding: 12px 12px 0 12px;
         min-height: 40px;
       }
       .info-box, .consent-box {
@@ -107,9 +107,9 @@ function HomeLogo({ onHome, disabled }) {
         width: 40, 
         cursor: disabled ? "not-allowed" : "pointer", 
         opacity: disabled ? 0.5 : 1,
-        position: "absolute", 
-        top: 16, 
-        left: 16 
+        marginRight: 12,
+        marginLeft: -40,
+        position: "static"
       }}
       onClick={disabled ? undefined : onHome}
       title={disabled ? "You cannot go home while answering the survey." : "Go to homepage"}
@@ -128,22 +128,22 @@ function FrontPage({ onNext }) {
         <blockquote style={{ fontSize: 22, fontStyle: "italic" }}>
           "The smartphone is a window to the world, but don’t let it close the door to yourself."
         </blockquote>
-        <div style={{ textAlign: "center", marginTop: "40px" }}>
+        <div style={{ textAlign: "center", marginTop: "20px" }}>
           <img 
             src={require('./img/home.jpg')} 
             alt="Motivational" 
             style={{ 
               width: "100%", 
-              maxWidth: 500, 
+              maxWidth: "400px", 
               height: "auto", 
-              margin: "30px 0",
+              margin: "20px 0",
               borderRadius: "15px",
-              boxShadow: "0 8px 25px rgba(0,0,0,0.15)"
+              boxShadow: "0 8px 25px rgba(143, 136, 136, 0.15)"
             }} 
           />
-          <h3 style={{ color: "#333", marginBottom: "30px" }}>This platform supports an ongoing study.</h3>
+          <h3 style={{ color: "#333", margin: "25px" }}>This platform supports an ongoing study.</h3>
         </div>
-        <div style={{ textAlign: "right", marginTop: "40px" }}>
+        <div style={{ textAlign: "right", marginTop: "25px" }}>
           <button 
             onClick={() => onNext(1)}
             style={{
@@ -199,29 +199,31 @@ function DescriptionPage({ onNext, onBack, usercode }) {
 
   return (
     <div className="responsive-page">
-      <div className="responsive-header" style={{ display: "flex", alignItems: "center", paddingRight: 16 }}>
+      <div className="responsive-header" style={{ display: "flex", alignItems: "center" }}>
         <HomeLogo onHome={() => onNext(0)} />
-        <div style={{ flex: 1 }} />
-        <button
-          aria-label="Show help"
-          onClick={() => setShowHelp(true)}
-          style={{
-            background: "#e3f2fd",
-            border: "none",
-            borderRadius: "50%",
-            width: 38,
-            height: 38,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 22,
-            color: "#1976d2",
-            cursor: "pointer",
-            boxShadow: "0 2px 8px #e3f2fd"
-          }}
-        >
-          ?
-        </button>
+        <div style={{ marginLeft: 'auto', marginRight: -40 }}>
+          <button
+            aria-label="Show help"
+            onClick={() => setShowHelp(true)}
+            style={{
+              background: "#e3f2fd",
+              border: "none",
+              borderRadius: "50%",
+              width: 38,
+              height: 38,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 22,
+              color: "#1976d2",
+              cursor: "pointer",
+              boxShadow: "0 2px 8px #e3f2fd",
+              position: "static"
+            }}
+          >
+            ?
+          </button>
+        </div>
         <HelpModal open={showHelp} onClose={() => setShowHelp(false)}>
           <h2 style={{textAlign: "center", color: "#1976d2", marginBottom: 12}}>About the System</h2>
           <h3 style={{textAlign: "center", marginTop: 0, color: "#333"}}>Smartphone Wizard</h3>
@@ -256,48 +258,48 @@ function DescriptionPage({ onNext, onBack, usercode }) {
         <div style={{ display: "flex", flexDirection: "column", gap: "25px", marginBottom: "30px" }}>
           {/* First box - Left aligned */}
           <div style={{
-            background: "linear-gradient(135deg, #789fd6ff 0%, #7d6693ff 100%)",
-            color: "white",
+            background: "#D5DFF7",
+            color: "black",
             padding: "20px",
             borderRadius: "15px",
             boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
             alignSelf: "flex-start",
-            maxWidth: "300px",
+            maxWidth: "70%",
             textAlign: "center"  // Center the content inside the div
           }}>
             <strong style={{ fontSize: "16px" }}>Research Consent Form</strong><br />
-            <p style={{ margin: "8px 0", textAlign: "justify" }}>This consent form, a copy of which has been given to you, is only part of the process of informed consent. It should give you the basic idea of what the research is about and what your participation will involve. If you would like more detail about something mentioned here, or information not included here, please ask. Please take the time to read this form carefully and to understand any accompanying information.</p>
+            <p style={{ margin: "8px 0", textAlign: "justify", fontSize: "13px" }}>This consent form, a copy of which has been given to you, is only part of the process of informed consent. It should give you the basic idea of what the research is about and what your participation will involve. If you would like more detail about something mentioned here, or information not included here, please ask. Please take the time to read this form carefully and to understand any accompanying information.</p>
           </div>
 
 
           {/* Second box - Right aligned */}
           <div style={{
-            background: "linear-gradient(135deg, #e2d364ff 0%, #6c9858ff 100%)",
-            color: "#333",
+            background: "#D5DFF7",
+            color: "black",
             padding: "20px",
             borderRadius: "15px",
             textAlign: "center",
             boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
             alignSelf: "flex-end",
-            maxWidth: "300px"
+            maxWidth: "70%"
           }}>
             <strong style={{ fontSize: "16px" }}>Research Project Title</strong>
-            <p style={{ margin: "8px 0", textAlign: "justify" }}>Campus Smartphone Addiction</p>
+            <p style={{ margin: "8px 0", textAlign: "justify", fontSize: "13px" }}>Campus Smartphone Addiction</p>
           </div>
 
           {/* Third box - Left aligned */}
           <div style={{
-            background: "linear-gradient(135deg, #76f1bcff 0%, #fef9d7 100%)",
-            color: "#333",
+            background: "#D5DFF7",
+            color: "black",
             padding: "20px",
             borderRadius: "15px",
             textAlign: "center",
             boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
             alignSelf: "flex-start",
-            maxWidth: "300px"
+            maxWidth: "70%"
           }}>
             <strong style={{ fontSize: "16px"}}>About the Researchers</strong>
-            <p style={{ margin: "8px 0", textAlign: "justify" }}>
+            <p style={{ margin: "8px 0", textAlign: "justify", fontSize: "13px" }}>
               Researchers: <br></br>
               ➱ Mufrad Mahmud <br></br>
               ➱ Nicholas Hettiarachchige Don<br></br><br></br>
@@ -309,49 +311,49 @@ function DescriptionPage({ onNext, onBack, usercode }) {
 
           {/* 4th box - Right aligned*/}
           <div style={{
-            background: "linear-gradient(135deg, #76b4f1ff 0%, #c7d3f5ff 100%)",
-            color: "#333",
+            background: "#D5DFF7",
+            color: "black",
             padding: "20px",
             borderRadius: "15px",
             textAlign: "center",
             boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
             alignSelf: "flex-end",
-            maxWidth: "300px"
+            maxWidth: "70%"
           }}>
             <strong style={{ fontSize: "16px" }}>Experiment Purpose</strong>
-            <p style={{ margin: "8px 0", textAlign: "justify" }}>
+            <p style={{ margin: "8px 0", textAlign: "justify", fontSize: "13px" }}>
               The purpose of this experiment is to explore the relationship between smartphone use and academic, emotional, and behavioral patterns among students in a post-COVID university environment. This study will help identify patterns of smartphone overuse or potential addiction, offering insights into students’ wellbeing, academic engagement, and digital habits. The results can guide the development of digital wellbeing tools and inform future interventions for smartphone-related behavioral challenges.
             </p>
           </div>
 
           {/* 5th box - Left aligned */}
           <div style={{
-            background: "linear-gradient(135deg, #84d2deff 0%, #b37890ff 100%)",
-            color: "#333",
+            background: "#D5DFF7",
+            color: "black",
             padding: "20px",
             borderRadius: "15px",
             textAlign: "center",
             boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
             alignSelf: "flex-start",
-            maxWidth: "300px"
+            maxWidth: "70%"
           }}>
             <strong style={{ fontSize: "16px" }}>Participant Recruitment and Selection</strong>
-            <p style={{ margin: "8px 0", textAlign: "justify" }}>Participants are recruited through an open call aimed at individuals currently enrolled in higher education or engaged in campus life. We welcome participants from all backgrounds who are interested in understanding their smartphone use patterns and whether they may be prone to problematic smartphone use or addiction.</p>
+            <p style={{ margin: "8px 0", textAlign: "justify", fontSize: "13px" }}>Participants are recruited through an open call aimed at individuals currently enrolled in higher education or engaged in campus life. We welcome participants from all backgrounds who are interested in understanding their smartphone use patterns and whether they may be prone to problematic smartphone use or addiction.</p>
           </div>
 
           {/* 6th box - Right aligned */}
           <div style={{
-            background: "linear-gradient(135deg, #76b4f1ff 0%, #c7d3f5ff 100%)",
-            color: "#333",
+            background: "#D5DFF7",
+            color: "black",
             padding: "20px",
             borderRadius: "15px",
             textAlign: "center",
             boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
             alignSelf: "flex-end",
-            maxWidth: "300px"
+            maxWidth: "70%"
           }}>
             <strong style={{ fontSize: "16px" }}>Experiment Procedure & Data Collection</strong>
-            <p style={{ margin: "8px 0", textAlign: "justify" }}>
+            <p style={{ margin: "8px 0", textAlign: "justify", fontSize: "13px" }}>
             The study will run over an extended period, with multiple voluntary participation points throughout the academic year. Data will be collected via an online survey platform that includes: <br></br><br></br>
             ➥ Smartphone Addiction Scale (SAS) short version standardized questionnaire. <br></br>
             ➥ Self-reported wellbeing and academic performance indicators. <br></br>
@@ -363,64 +365,64 @@ function DescriptionPage({ onNext, onBack, usercode }) {
 
           {/* 7th box - Left aligned */}
           <div style={{
-            background: "linear-gradient(135deg, #8ec598ff 0%, #a7b1e4ff 100%)",
-            color: "#333",
+            background: "#D5DFF7",
+            color: "black",
             padding: "20px",
             borderRadius: "15px",
             textAlign: "center",
             boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
             alignSelf: "flex-start",
-            maxWidth: "300px"
+            maxWidth: "70%"
           }}>
             <strong style={{ fontSize: "16px" }}>Data Archiving/Destruction</strong>
-            <p style={{ margin: "8px 0", textAlign: "justify" }}>Data will be kept securely. The investigator will destroy study data after the research. This will be at the end of the research project when results are fully reported and disseminated.</p>
+            <p style={{ margin: "8px 0", textAlign: "justify", fontSize: "13px" }}>Data will be kept securely. The investigator will destroy study data after the research. This will be at the end of the research project when results are fully reported and disseminated.</p>
           </div>
 
           {/* 8th box - Right aligned */}
           <div style={{
-            background: "linear-gradient(135deg, #f7c28dff 0%, #cdaab8ff 100%)",
-            color: "#333",
+            background: "#D5DFF7",
+            color: "black",
             padding: "20px",
             borderRadius: "15px",
             textAlign: "center",
             boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
             alignSelf: "flex-end",
-            maxWidth: "300px"
+            maxWidth: "70%"
           }}>
             <strong style={{ fontSize: "16px" }}>Confidentiality</strong>
-            <p style={{ margin: "8px 0", textAlign: "justify" }}>
+            <p style={{ margin: "8px 0", textAlign: "justify", fontSize: "13px" }}>
               Confidentiality and participant anonymity will be strictly maintained. All information gathered will be used for statistical analysis only and no names or other identifying characteristics will be stated in the final or any other reports.
             </p>
           </div>
 
           {/* 9th box - Left aligned */}
           <div style={{
-            background: "linear-gradient(135deg, rgba(170, 221, 179, 1) 0%, #dadb7bff 100%)",
-            color: "#333",
+            background: "#D5DFF7",
+            color: "black",
             padding: "20px",
             borderRadius: "15px",
             textAlign: "center",
             boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
             alignSelf: "flex-start",
-            maxWidth: "300px"
+            maxWidth: "70%"
           }}>
             <strong style={{ fontSize: "16px" }}>Likelihood of Discomfort</strong>
-            <p style={{ margin: "8px 0", textAlign: "justify" }}>There is no likelihood of risk associated with participation.</p>
+            <p style={{ margin: "8px 0", textAlign: "justify", fontSize: "13px" }}>There is no likelihood of risk associated with participation.</p>
           </div>
 
           {/* 10th box - Right aligned */}
           <div style={{
-            background: "linear-gradient(135deg, #8da1f7ff 0%, #cdaab8ff 100%)",
-            color: "#333",
+            background: "#D5DFF7",
+            color: "black",
             padding: "20px",
             borderRadius: "15px",
             textAlign: "center",
             boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
             alignSelf: "flex-end",
-            maxWidth: "300px"
+            maxWidth: "70%"
           }}>
             <strong style={{ fontSize: "16px" }}>Finding out about Results</strong>
-            <p style={{ margin: "8px 0", textAlign: "justify" }}>
+            <p style={{ margin: "8px 0", textAlign: "justify", fontSize: "13px" }}>
               The participants can find out the results of the study just after completing the survey.
             </p>
           </div>
@@ -451,22 +453,22 @@ function DescriptionPage({ onNext, onBack, usercode }) {
                 style={{
                   padding: "12px 24px",
                   fontSize: "16px",
-                  backgroundColor: "#ff6b6b",
+                  backgroundColor: "#4283c1ff",
                   color: "white",
                   border: "none",
                   borderRadius: "8px",
                   cursor: "pointer",
-                  boxShadow: "0 4px 15px rgba(255, 107, 107, 0.3)",
+                  boxShadow: "0 4px 15px rgba(33, 150, 243, 0.3)",
                   transition: "all 0.3s ease",
                   fontWeight: "bold"
                 }}
                 onMouseOver={(e) => {
                   e.target.style.transform = "translateY(-2px)";
-                  e.target.style.boxShadow = "0 6px 20px rgba(255, 107, 107, 0.4)";
+                  e.target.style.boxShadow = "0 6px 20px rgba(115, 205, 244, 0.4)";
                 }}
                 onMouseOut={(e) => {
                   e.target.style.transform = "translateY(0)";
-                  e.target.style.boxShadow = "0 4px 15px rgba(255, 107, 107, 0.3)";
+                  e.target.style.boxShadow = "0 4px 15px rgba(115, 205, 244, 0.3)";
                 }}
               >
                 Decline
@@ -889,9 +891,6 @@ function SurveyCompletionPage({ onReturnHome, usercode, answers }) {
   const score = Array.isArray(answers) ? answers.reduce((a, b) => a + b, 0) : '--';
   return (
     <div className="responsive-page">
-      <div className="responsive-header">
-        <HomeLogo onHome={onReturnHome} />
-      </div>
       <div className="responsive-card" style={{ textAlign: "center" }}>
         <h1>Survey Completed!</h1>
         <p style={{ fontSize: 18, marginBottom: 30 }}>
@@ -900,7 +899,7 @@ function SurveyCompletionPage({ onReturnHome, usercode, answers }) {
         
         {/* Survey Score Section */}
         <div style={{ 
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)", 
+          background: "#8ab4e5ff", 
           color: "white", 
           padding: "24px", 
           borderRadius: "16px", 
@@ -919,7 +918,7 @@ function SurveyCompletionPage({ onReturnHome, usercode, answers }) {
 
         {/* Overall Feedback Box */}
         <div style={{ 
-          background: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)", 
+          background: "#d7bdecff", 
           color: "#333", 
           padding: "24px", 
           borderRadius: "16px", 

@@ -13,7 +13,7 @@ export default function SurveyInstructionsPage({ onContinue, onBack }) {
   return (
     <div style={{
       minHeight: "100vh",
-      background: "linear-gradient(135deg, #B5D9FF 0%, #EAF6FF 100%)",
+      background: "#fff",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
@@ -22,16 +22,17 @@ export default function SurveyInstructionsPage({ onContinue, onBack }) {
       <div className="survey-instructions-card" style={{
         width: "100%",
         maxWidth: 650,
-        margin: "40px auto",
-        padding: "6vw 5vw 4vw 5vw",
+        margin: "24px auto",
+        padding: "32px 3vw 3vw 3vw",
         background: "#fff",
         borderRadius: 24,
-        boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
+        boxShadow: "0 0 6px rgba(0, 0, 0, 0.6)",
         fontSize: "clamp(1rem, 2vw, 1.25rem)",
         lineHeight: 1.7,
         color: "#1a237e",
         position: "relative",
-        boxSizing: "border-box"
+        boxSizing: "border-box",
+        border: "none"
       }}>
         <h2 style={{
           textAlign: "center",

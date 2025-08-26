@@ -1172,36 +1172,151 @@ export default function App() {
 
   return (
     <div className="responsive-page">
-             <div className="responsive-header" style={{ 
-         display: "flex", 
-         alignItems: "center", 
-         paddingRight: 16,
-         maxWidth: current && submittedQuestions.has(current.qIndex) ? "1200px" : "650px",
-         margin: "0 auto",
-         width: "100%"
-       }}>
-         <HomeLogo onHome={() => setPage(0)} disabled={true} />
-         <div style={{ flex: 1 }} />
-         <button
-           aria-label="Show help"
-           onClick={() => setShowHelp(true)}
-           style={{
-             background: "#e3f2fd",
-             border: "none",
-             borderRadius: "50%",
-             width: 38,
-             height: 38,
-             display: "flex",
-             alignItems: "center",
-             justifyContent: "center",
-             fontSize: 22,
-             color: "#1976d2",
-             cursor: "pointer",
-             boxShadow: "0 2px 8px #e3f2fd"
-           }}
-         >
-           ?
-         </button>
+      <div
+        className="responsive-header"
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 100,
+          background: "#fff",
+          boxShadow: "0 2px 8px #e3f2fd",
+          display: "flex",
+          alignItems: "center",
+          padding: "10px 0 10px 0", // Remove left/right padding so Home icon is fully inside
+          maxWidth: current && submittedQuestions.has(current.qIndex) ? "1200px" : "650px",
+          margin: "0 auto",
+          width: "100%",
+          borderRadius: "10px"
+        }}
+      >
+        <HomeLogo onHome={() => setPage(0)} disabled={true} style={{ marginLeft: 0 }} />
+        {/* Progress Bar and Help in a flex row with constant gap */}
+        <div style={{ display: "flex", alignItems: "center", gap: 16, flex: 1, marginLeft: 12 }}>
+          {/* Progress Bar with Navigation and Help */}
+          <div style={{ display: "flex", alignItems: "center", flex: 1, gap: 16 }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+              <button
+                onClick={prevStep}
+                disabled={step === 0}
+                style={{
+                  padding: "8px 12px",
+                  fontSize: "18px",
+                  backgroundColor: step === 0 ? "#cccccc" : "#4CAF50",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: step === 0 ? "not-allowed" : "pointer",
+                  transition: "all 0.3s ease",
+                  fontWeight: "bold",
+                  opacity: step === 0 ? 0.5 : 1,
+                  minWidth: 44,
+                  marginBottom: 2,
+                  paddingRight: 10
+                }}
+                onMouseOver={(e) => {
+                  if (step !== 0) {
+                    e.target.style.transform = "translateY(-2px)";
+                    e.target.style.boxShadow = "0 4px 15px rgba(76, 175, 80, 0.3)";
+                  }
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.transform = "translateY(0)";
+                  e.target.style.boxShadow = "none";
+                }}
+              >
+                ←
+              </button>
+            </div>
+            <div style={{ flex: 1, display: "flex", alignItems: "center", minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", flex: 1 }}>
+                <div style={{
+                  flex: 1,
+                  height: 14,
+                  backgroundColor: "#f0f0f0",
+                  borderRadius: 7,
+                  overflow: "hidden",
+                  position: "relative"
+                }}>
+                  <div style={{
+                    width: `${(currentQuestionNumber / 10) * 100}%`,
+                    height: "100%",
+                    backgroundColor: "#4CAF50",
+                    transition: "width 0.3s ease",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "flex-end",
+                    position: "relative"
+                  }}>
+                    <span style={{
+                      color: "#fff",
+                      fontWeight: "bold",
+                      fontSize: 11,
+                      position: "absolute",
+                      right: 10,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      textShadow: "0 1px 2px rgba(0,0,0,0.15)",
+                      letterSpacing: 1
+                    }}>
+                      {Math.round((currentQuestionNumber / 10) * 100)}%
+                    </span>
+                  </div>
+                </div>
+                <button
+                  onClick={nextStep}
+                  disabled={!submittedQuestions.has(current.qIndex) || step === steps.length - 1}
+                  style={{
+                    padding: "8px 12px",
+                    fontSize: "18px",
+                    backgroundColor: (!submittedQuestions.has(current.qIndex) || step === steps.length - 1) ? "#cccccc" : "#4CAF50",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "6px",
+                    cursor: (!submittedQuestions.has(current.qIndex) || step === steps.length - 1) ? "not-allowed" : "pointer",
+                    transition: "all 0.3s ease",
+                    fontWeight: "bold",
+                    opacity: (!submittedQuestions.has(current.qIndex) || step === steps.length - 1) ? 0.5 : 1,
+                    minWidth: 35,
+                    marginLeft: "10px" // Consistent gap
+                  }}
+                  onMouseOver={(e) => {
+                    if (submittedQuestions.has(current.qIndex) && step !== steps.length - 1) {
+                      e.target.style.transform = "translateY(-2px)";
+                      e.target.style.boxShadow = "0 4px 15px rgba(76, 175, 80, 0.3)";
+                    }
+                  }}
+                  onMouseOut={(e) => {
+                    e.target.style.transform = "translateY(0)";
+                    e.target.style.boxShadow = "none";
+                  }}
+                >
+                  →
+                </button>
+              </div>
+            </div>
+          </div>
+          {/* Help Button */}
+          <button
+            aria-label="Show help"
+            onClick={() => setShowHelp(true)}
+            style={{
+              background: "#e3f2fd",
+              border: "none",
+              borderRadius: "50%",
+              width: 38,
+              height: 38,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 22,
+              color: "#1976d2",
+              cursor: "pointer",
+              boxShadow: "0 2px 8px #e3f2fd"
+            }}
+          >
+            ?
+          </button>
+        </div>
         <HelpModal open={showHelp} onClose={() => setShowHelp(false)}>
           <h2 style={{textAlign: "center", color: "#1976d2", marginBottom: 12}}>About the System</h2>
           <h3 style={{textAlign: "center", marginTop: 0, color: "#333"}}>Smartphone Wizard</h3>
@@ -1238,114 +1353,22 @@ export default function App() {
        }}>
          {/* Main Content Area */}
          <div className="responsive-card" style={{ padding: 16, flex: 1 }}>
-           <div style={{ textAlign: "right", marginTop: "40px"}}>
-           {usercode && <div style={{ margin: "16px 0", fontWeight: "bold" }}>Your User Code: {usercode}</div>}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "-18px", marginLeft: "5px", marginRight: "5px" }}>
+          {/* Left side: Question Progress */}
+          <div style={{ fontSize: "14px", color: "#555", fontWeight: "bold" }}>
+              {currentQuestionNumber}/10
+          </div>
+          {usercode && <div style={{ margin: "16px 0", fontWeight: "bold" }}>Your User Code: {usercode}</div>}
            </div>
-           
-           {/* Progress Bar with Navigation */}
-           <div style={{ marginBottom: 30 }}>
-             <div style={{ 
-               display: "flex", 
-               alignItems: "center", 
-               justifyContent: "space-between",
-               marginBottom: 15
-             }}>
-               <button 
-                 onClick={prevStep}
-                 disabled={step === 0}
-                 style={{
-                   padding: "8px 12px",
-                   fontSize: "18px",
-                   backgroundColor: step === 0 ? "#cccccc" : "#4CAF50",
-                   color: "white",
-                   border: "none",
-                   borderRadius: "6px",
-                   cursor: step === 0 ? "not-allowed" : "pointer",
-                   transition: "all 0.3s ease",
-                   fontWeight: "bold",
-                   opacity: step === 0 ? 0.5 : 1
-                 }}
-                 onMouseOver={(e) => {
-                   if (step !== 0) {
-                     e.target.style.transform = "translateY(-2px)";
-                     e.target.style.boxShadow = "0 4px 15px rgba(76, 175, 80, 0.3)";
-                   }
-                 }}
-                 onMouseOut={(e) => {
-                   e.target.style.transform = "translateY(0)";
-                   e.target.style.boxShadow = "none";
-                 }}
-               >
-                 ←
-               </button>
-               
-               <div style={{ flex: 1, margin: "0 20px" }}>
-                 <div style={{ 
-                   display: "flex", 
-                   justifyContent: "space-between", 
-                   alignItems: "center", 
-                   marginBottom: 8 
-                 }}>
-                   <span style={{ fontSize: "18px", fontWeight: "bold" }}>
-                     {currentQuestionNumber}/10
-                   </span>
-                   <span style={{ fontSize: "14px", color: "#666" }}>
-                     {Math.round((currentQuestionNumber / 10) * 100)}% Complete
-                   </span>
-                 </div>
-                 <div style={{ 
-                   width: "100%", 
-                   height: "12px", 
-                   backgroundColor: "#f0f0f0", 
-                   borderRadius: "6px", 
-                   overflow: "hidden" 
-                 }}>
-                   <div style={{ 
-                     width: `${(currentQuestionNumber / 10) * 100}%`, 
-                     height: "100%", 
-                     backgroundColor: "#4CAF50", 
-                     transition: "width 0.3s ease" 
-                   }} />
-                 </div>
-               </div>
-               
-               <button 
-                 onClick={nextStep}
-                 disabled={!submittedQuestions.has(current.qIndex) || step === steps.length - 1}
-                 style={{
-                   padding: "8px 12px",
-                   fontSize: "18px",
-                   backgroundColor: (!submittedQuestions.has(current.qIndex) || step === steps.length - 1) ? "#cccccc" : "#4CAF50",
-                   color: "white",
-                   border: "none",
-                   borderRadius: "6px",
-                   cursor: (!submittedQuestions.has(current.qIndex) || step === steps.length - 1) ? "not-allowed" : "pointer",
-                   transition: "all 0.3s ease",
-                   fontWeight: "bold",
-                   opacity: (!submittedQuestions.has(current.qIndex) || step === steps.length - 1) ? 0.5 : 1
-                 }}
-                 onMouseOver={(e) => {
-                   if (submittedQuestions.has(current.qIndex) && step !== steps.length - 1) {
-                     e.target.style.transform = "translateY(-2px)";
-                     e.target.style.boxShadow = "0 4px 15px rgba(76, 175, 80, 0.3)";
-                   }
-                 }}
-                 onMouseOut={(e) => {
-                   e.target.style.transform = "translateY(0)";
-                   e.target.style.boxShadow = "none";
-                 }}
-               >
-                 →
-               </button>
-             </div>
-           </div>
+
+           {/* Here were the progressbar lines */}
 
            {/* Progressive Container Layout */}
            <div style={{ 
              display: "flex",
              flexDirection: "column",
-             gap: "20px",
-             marginTop: "20px"
+             gap: "15px",
+             marginTop: "2px"
            }}>
              
              {/* Container 1: Question Section - Always visible */}
@@ -1395,7 +1418,7 @@ export default function App() {
                                          {/* Container 2: Graph Section - Only show after submit */}
                {current && submittedQuestions.has(current.qIndex) && (
                  <div style={{ 
-                   padding: "20px",
+                   padding: "10px",
                    backgroundColor: "white",
                    borderRadius: "12px",
                    border: "1px solid #e9ecef",

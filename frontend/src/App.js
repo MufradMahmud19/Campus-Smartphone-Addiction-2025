@@ -18,7 +18,6 @@ if (typeof window !== 'undefined') {
     }
     .responsive-page {
       min-height: 100vh;
-      width: 100vw;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -149,12 +148,12 @@ function FrontPage({ onNext }) {
             style={{
               padding: "15px 40px",
               fontSize: "18px",
-              backgroundColor: "#4CAF50",
+              backgroundColor: "#004a77",
               color: "white",
               border: "none",
               borderRadius: "12px",
               cursor: "pointer",
-              boxShadow: "0 6px 20px rgba(76, 175, 80, 0.3)",
+              boxShadow: "0 6px 20px #004a77",
               transition: "all 0.3s ease",
               fontWeight: "bold",
               textTransform: "uppercase",
@@ -162,11 +161,11 @@ function FrontPage({ onNext }) {
             }}
             onMouseOver={(e) => {
               e.target.style.transform = "translateY(-3px)";
-              e.target.style.boxShadow = "0 8px 25px rgba(76, 175, 80, 0.4)";
+              e.target.style.boxShadow = "0 8px 25px #004a77";
             }}
             onMouseOut={(e) => {
               e.target.style.transform = "translateY(0)";
-              e.target.style.boxShadow = "0 6px 20px rgba(76, 175, 80, 0.3)";
+              e.target.style.boxShadow = "0 6px 20px #004a77";
             }}
           >
             Get Started
@@ -268,7 +267,7 @@ function DescriptionPage({ onNext, onBack, usercode }) {
             textAlign: "center"  // Center the content inside the div
           }}>
             <strong style={{ fontSize: "16px" }}>Research Consent Form</strong><br />
-            <p style={{ margin: "8px 0", textAlign: "justify", fontSize: "13px" }}>This consent form, a copy of which has been given to you, is only part of the process of informed consent. It should give you the basic idea of what the research is about and what your participation will involve. If you would like more detail about something mentioned here, or information not included here, please ask. Please take the time to read this form carefully and to understand any accompanying information.</p>
+            <p style={{ margin: "8px 0", textAlign: "justify", fontSize: "13px", lineHeight: "16px"}}>This consent form, a copy of which has been given to you, is only part of the process of informed consent. It should give you the basic idea of what the research is about and what your participation will involve. If you would like more detail about something mentioned here, or information not included here, please ask. Please take the time to read this form carefully and to understand any accompanying information.</p>
           </div>
 
 
@@ -284,7 +283,7 @@ function DescriptionPage({ onNext, onBack, usercode }) {
             maxWidth: "70%"
           }}>
             <strong style={{ fontSize: "16px" }}>Research Project Title</strong>
-            <p style={{ margin: "8px 0", textAlign: "justify", fontSize: "13px" }}>Campus Smartphone Addiction</p>
+            <p style={{ margin: "8px 0", textAlign: "justify", fontSize: "13px", lineHeight: "16px"}}>Campus Smartphone Addiction</p>
           </div>
 
           {/* Third box - Left aligned */}
@@ -299,7 +298,7 @@ function DescriptionPage({ onNext, onBack, usercode }) {
             maxWidth: "70%"
           }}>
             <strong style={{ fontSize: "16px"}}>About the Researchers</strong>
-            <p style={{ margin: "8px 0", textAlign: "justify", fontSize: "13px" }}>
+            <p style={{ margin: "8px 0", textAlign: "justify", fontSize: "13px", lineHeight: "16px"}}>
               Researchers: <br></br>
               ➱ Mufrad Mahmud <br></br>
               ➱ Nicholas Hettiarachchige Don<br></br><br></br>
@@ -321,7 +320,7 @@ function DescriptionPage({ onNext, onBack, usercode }) {
             maxWidth: "70%"
           }}>
             <strong style={{ fontSize: "16px" }}>Experiment Purpose</strong>
-            <p style={{ margin: "8px 0", textAlign: "justify", fontSize: "13px" }}>
+            <p style={{ margin: "8px 0", textAlign: "justify", fontSize: "13px", lineHeight: "16px"}}>
               The purpose of this experiment is to explore the relationship between smartphone use and academic, emotional, and behavioral patterns among students in a post-COVID university environment. This study will help identify patterns of smartphone overuse or potential addiction, offering insights into students’ wellbeing, academic engagement, and digital habits. The results can guide the development of digital wellbeing tools and inform future interventions for smartphone-related behavioral challenges.
             </p>
           </div>
@@ -338,7 +337,7 @@ function DescriptionPage({ onNext, onBack, usercode }) {
             maxWidth: "70%"
           }}>
             <strong style={{ fontSize: "16px" }}>Participant Recruitment and Selection</strong>
-            <p style={{ margin: "8px 0", textAlign: "justify", fontSize: "13px" }}>Participants are recruited through an open call aimed at individuals currently enrolled in higher education or engaged in campus life. We welcome participants from all backgrounds who are interested in understanding their smartphone use patterns and whether they may be prone to problematic smartphone use or addiction.</p>
+            <p style={{ margin: "8px 0", textAlign: "justify", fontSize: "13px", lineHeight: "16px"}}>Participants are recruited through an open call aimed at individuals currently enrolled in higher education or engaged in campus life. We welcome participants from all backgrounds who are interested in understanding their smartphone use patterns and whether they may be prone to problematic smartphone use or addiction.</p>
           </div>
 
           {/* 6th box - Right aligned */}
@@ -353,7 +352,7 @@ function DescriptionPage({ onNext, onBack, usercode }) {
             maxWidth: "70%"
           }}>
             <strong style={{ fontSize: "16px" }}>Experiment Procedure & Data Collection</strong>
-            <p style={{ margin: "8px 0", textAlign: "justify", fontSize: "13px" }}>
+            <p style={{ margin: "8px 0", textAlign: "justify", fontSize: "13px", lineHeight: "16px"}}>
             The study will run over an extended period, with multiple voluntary participation points throughout the academic year. Data will be collected via an online survey platform that includes: <br></br><br></br>
             ➥ Smartphone Addiction Scale (SAS) short version standardized questionnaire. <br></br>
             ➥ Self-reported wellbeing and academic performance indicators. <br></br>
@@ -375,7 +374,7 @@ function DescriptionPage({ onNext, onBack, usercode }) {
             maxWidth: "70%"
           }}>
             <strong style={{ fontSize: "16px" }}>Data Archiving/Destruction</strong>
-            <p style={{ margin: "8px 0", textAlign: "justify", fontSize: "13px" }}>Data will be kept securely. The investigator will destroy study data after the research. This will be at the end of the research project when results are fully reported and disseminated.</p>
+            <p style={{ margin: "8px 0", textAlign: "justify", fontSize: "13px", lineHeight: "16px"}}>Data will be kept securely. The investigator will destroy study data after the research. This will be at the end of the research project when results are fully reported and disseminated.</p>
           </div>
 
           {/* 8th box - Right aligned */}
@@ -390,7 +389,7 @@ function DescriptionPage({ onNext, onBack, usercode }) {
             maxWidth: "70%"
           }}>
             <strong style={{ fontSize: "16px" }}>Confidentiality</strong>
-            <p style={{ margin: "8px 0", textAlign: "justify", fontSize: "13px" }}>
+            <p style={{ margin: "8px 0", textAlign: "justify", fontSize: "13px", lineHeight: "16px"}}>
               Confidentiality and participant anonymity will be strictly maintained. All information gathered will be used for statistical analysis only and no names or other identifying characteristics will be stated in the final or any other reports.
             </p>
           </div>
@@ -407,7 +406,7 @@ function DescriptionPage({ onNext, onBack, usercode }) {
             maxWidth: "70%"
           }}>
             <strong style={{ fontSize: "16px" }}>Likelihood of Discomfort</strong>
-            <p style={{ margin: "8px 0", textAlign: "justify", fontSize: "13px" }}>There is no likelihood of risk associated with participation.</p>
+            <p style={{ margin: "8px 0", textAlign: "justify", fontSize: "13px", lineHeight: "16px"}}>There is no likelihood of risk associated with participation.</p>
           </div>
 
           {/* 10th box - Right aligned */}
@@ -422,7 +421,7 @@ function DescriptionPage({ onNext, onBack, usercode }) {
             maxWidth: "70%"
           }}>
             <strong style={{ fontSize: "16px" }}>Finding out about Results</strong>
-            <p style={{ margin: "8px 0", textAlign: "justify", fontSize: "13px" }}>
+            <p style={{ margin: "8px 0", textAlign: "justify", fontSize: "13px", lineHeight: "16px"}}>
               The participants can find out the results of the study just after completing the survey.
             </p>
           </div>
@@ -453,22 +452,22 @@ function DescriptionPage({ onNext, onBack, usercode }) {
                 style={{
                   padding: "12px 24px",
                   fontSize: "16px",
-                  backgroundColor: "#4283c1ff",
-                  color: "white",
-                  border: "none",
+                  backgroundColor: "#f0f0f0",
+                  color: "black",
+                  borderWidth : "1px",
                   borderRadius: "8px",
                   cursor: "pointer",
-                  boxShadow: "0 4px 15px rgba(33, 150, 243, 0.3)",
+                  boxShadow: "0 4px 15px #cfcfcfff",
                   transition: "all 0.3s ease",
                   fontWeight: "bold"
                 }}
                 onMouseOver={(e) => {
                   e.target.style.transform = "translateY(-2px)";
-                  e.target.style.boxShadow = "0 6px 20px rgba(115, 205, 244, 0.4)";
+                  e.target.style.boxShadow = "0 6px 20px #cfcfcfff";
                 }}
                 onMouseOut={(e) => {
                   e.target.style.transform = "translateY(0)";
-                  e.target.style.boxShadow = "0 4px 15px rgba(115, 205, 244, 0.3)";
+                  e.target.style.boxShadow = "0 4px 15px #f0f0f0";
                 }}
               >
                 Decline
@@ -478,22 +477,22 @@ function DescriptionPage({ onNext, onBack, usercode }) {
                 style={{
                   padding: "12px 24px",
                   fontSize: "16px",
-                  backgroundColor: "#4CAF50",
+                  backgroundColor: "#004a77",
                   color: "white",
                   border: "none",
                   borderRadius: "8px",
                   cursor: "pointer",
-                  boxShadow: "0 4px 15px rgba(76, 175, 80, 0.3)",
+                  boxShadow: "0 4px 15px #004a77",
                   transition: "all 0.3s ease",
                   fontWeight: "bold"
                 }}
                 onMouseOver={(e) => {
                   e.target.style.transform = "translateY(-2px)";
-                  e.target.style.boxShadow = "0 6px 20px rgba(76, 175, 80, 0.4)";
+                  e.target.style.boxShadow = "0 6px 20px #004a77";
                 }}
                 onMouseOut={(e) => {
                   e.target.style.transform = "translateY(0)";
-                  e.target.style.boxShadow = "0 4px 15px rgba(76, 175, 80, 0.3)";
+                  e.target.style.boxShadow = "0 4px 15px #004a77";
                 }}
               >
                 Accept
@@ -525,22 +524,22 @@ function UserCheckPage({ onFirstTime, onReturning, onBack, onHome }) {
             style={{
               padding: "15px 30px",
               fontSize: "16px",
-              backgroundColor: "#4CAF50",
+              backgroundColor: "#004a77",
               color: "white",
               border: "none",
               borderRadius: "10px",
               cursor: "pointer",
-              boxShadow: "0 4px 15px rgba(76, 175, 80, 0.3)",
+              boxShadow: "0 4px 15px #004a77",
               transition: "all 0.3s ease",
               fontWeight: "bold"
             }}
             onMouseOver={(e) => {
               e.target.style.transform = "translateY(-2px)";
-              e.target.style.boxShadow = "0 6px 20px rgba(76, 175, 80, 0.4)";
+              e.target.style.boxShadow = "0 6px 20px #004a77";
             }}
             onMouseOut={(e) => {
               e.target.style.transform = "translateY(0)";
-              e.target.style.boxShadow = "0 4px 15px rgba(76, 175, 80, 0.3)";
+              e.target.style.boxShadow = "0 4px 15px #004a77";
             }}
           >
             Yes
@@ -550,22 +549,22 @@ function UserCheckPage({ onFirstTime, onReturning, onBack, onHome }) {
             style={{
               padding: "15px 30px",
               fontSize: "16px",
-              backgroundColor: "#2196F3",
-              color: "white",
-              border: "none",
+              backgroundColor: "#f0f0f0",
+              color: "black",
+              borderWidth : "1px",
               borderRadius: "10px",
               cursor: "pointer",
-              boxShadow: "0 4px 15px rgba(33, 150, 243, 0.3)",
+              boxShadow: "0 4px 15px #f0f0f0",
               transition: "all 0.3s ease",
               fontWeight: "bold"
             }}
             onMouseOver={(e) => {
               e.target.style.transform = "translateY(-2px)";
-              e.target.style.boxShadow = "0 6px 20px rgba(33, 150, 243, 0.4)";
+              e.target.style.boxShadow = "0 6px 20px #e0e0e0";
             }}
             onMouseOut={(e) => {
               e.target.style.transform = "translateY(0)";
-              e.target.style.boxShadow = "0 4px 15px rgba(33, 150, 243, 0.3)";
+              e.target.style.boxShadow = "0 4px 15px #f0f0f0";
             }}
           >
             No
@@ -620,25 +619,25 @@ function ReturnUserPage({ onReturning, onBack, setUsercode, onHome }) {
               style={{ 
                 padding: "12px 24px", 
                 fontSize: "16px", 
-                backgroundColor: checking ? "#cccccc" : "#4CAF50", 
+                backgroundColor: checking ? "#cccccc" : "#004a77", 
                 color: "white", 
                 border: "none", 
                 borderRadius: "8px",
                 cursor: checking ? "not-allowed" : "pointer",
                 whiteSpace: "nowrap",
-                boxShadow: checking ? "none" : "0 4px 15px rgba(76, 175, 80, 0.3)",
+                boxShadow: checking ? "none" : "0 4px 15px #004a77",
                 transition: "all 0.3s ease",
                 fontWeight: "bold"
               }}
               onMouseOver={(e) => {
                 if (!checking) {
                   e.target.style.transform = "translateY(-2px)";
-                  e.target.style.boxShadow = "0 6px 20px rgba(76, 175, 80, 0.4)";
+                  e.target.style.boxShadow = "0 6px 20px #004a77";
                 }
               }}
               onMouseOut={(e) => {
                 e.target.style.transform = "translateY(0)";
-                e.target.style.boxShadow = checking ? "none" : "0 4px 15px rgba(76, 175, 80, 0.3)";
+                e.target.style.boxShadow = checking ? "none" : "0 4px 15px #004a77";
               }}
             >
               {checking ? "Validating..." : "Validate"}
@@ -654,7 +653,7 @@ function ReturnUserPage({ onReturning, onBack, setUsercode, onHome }) {
               fontSize: "16px",
               backgroundColor: "#f0f0f0",
               color: "#333",
-              border: "none",
+              borderWidth : "1px",
               borderRadius: "8px",
               cursor: "pointer",
               transition: "all 0.3s ease",
@@ -669,7 +668,7 @@ function ReturnUserPage({ onReturning, onBack, setUsercode, onHome }) {
           >
             Back
           </button>
-        </div>
+        </div> 
       </div>
     </div>
   );
@@ -840,7 +839,7 @@ function DemographicsPage({ onSubmit, onBack, usercode }) {
               fontSize: "16px",
               backgroundColor: "#f0f0f0",
               color: "#333",
-              border: "none",
+              borderWidth : "1px",
               borderRadius: "8px",
               cursor: "pointer",
               transition: "all 0.3s ease",
@@ -860,22 +859,22 @@ function DemographicsPage({ onSubmit, onBack, usercode }) {
             style={{ 
               padding: "12px 24px", 
               fontSize: "16px", 
-              backgroundColor: "#4CAF50", 
+              backgroundColor: "#004a77", 
               color: "white", 
               border: "none", 
               borderRadius: "8px",
               cursor: "pointer",
-              boxShadow: "0 4px 15px rgba(76, 175, 80, 0.3)",
+              boxShadow: "0 4px 15px #004a77",
               transition: "all 0.3s ease",
               fontWeight: "bold"
             }}
             onMouseOver={(e) => {
               e.target.style.transform = "translateY(-2px)";
-              e.target.style.boxShadow = "0 6px 20px rgba(76, 175, 80, 0.4)";
+              e.target.style.boxShadow = "0 6px 20px #004a77";
             }}
             onMouseOut={(e) => {
               e.target.style.transform = "translateY(0)";
-              e.target.style.boxShadow = "0 4px 15px rgba(76, 175, 80, 0.3)";
+              e.target.style.boxShadow = "0 4px 15px #004a77";
             }}
           >
             Continue
@@ -967,23 +966,23 @@ function SurveyCompletionPage({ onReturnHome, usercode, answers }) {
           style={{
             padding: "15px 30px",
             fontSize: "16px",
-            backgroundColor: "#4CAF50",
+            backgroundColor: "#004a77",
             color: "white",
             border: "none",
             borderRadius: "8px",
             cursor: "pointer",
-            boxShadow: "0 4px 15px rgba(76, 175, 80, 0.3)",
+            boxShadow: "0 4px 15px #004a77",
             transition: "all 0.3s ease",
             fontWeight: "bold",
             marginTop: "16px"
           }}
           onMouseOver={(e) => {
             e.target.style.transform = "translateY(-2px)";
-            e.target.style.boxShadow = "0 6px 20px rgba(76, 175, 80, 0.4)";
+            e.target.style.boxShadow = "0 6px 20px #004a77";
           }}
           onMouseOut={(e) => {
             e.target.style.transform = "translateY(0)";
-            e.target.style.boxShadow = "0 4px 15px rgba(76, 175, 80, 0.3)";
+            e.target.style.boxShadow = "0 4px 15px #004a77";
           }}
         >
           Return to Homepage
@@ -1498,22 +1497,22 @@ export default function App() {
                          style={{ 
                            padding: "15px 30px", 
                            fontSize: "18px", 
-                           backgroundColor: "#4CAF50", 
+                           backgroundColor: "#004a77", 
                            color: "white", 
                            border: "none", 
                            borderRadius: "8px",
                            cursor: "pointer",
-                           boxShadow: "0 4px 15px rgba(76, 175, 80, 0.3)",
+                           boxShadow: "0 4px 15px #004a77",
                            transition: "all 0.3s ease",
                            fontWeight: "bold"
                          }}
                          onMouseOver={(e) => {
                            e.target.style.transform = "translateY(-2px)";
-                           e.target.style.boxShadow = "0 6px 20px rgba(76, 175, 80, 0.4)";
+                           e.target.style.boxShadow = "0 6px 20px #004a77";
                          }}
                          onMouseOut={(e) => {
                            e.target.style.transform = "translateY(0)";
-                           e.target.style.boxShadow = "0 4px 15px rgba(76, 175, 80, 0.3)";
+                           e.target.style.boxShadow = "0 4px 15px #004a77";
                          }}
                        >
                          Finish Survey

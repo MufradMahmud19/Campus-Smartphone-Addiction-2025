@@ -60,15 +60,15 @@ export default function SurveyInstructionsPage({ onContinue, onBack }) {
         </div>
         <div style={{marginBottom: 18}}>
           <span style={{fontWeight: 600}}>AI Assistant:</span>
-          <span> For each question, after answering, you can interact with an <span style={{color: '#43a047', fontWeight: 600}}>AI assistant 🤖</span> if you have any queries or need clarification about the question.</span>
+          <span> For each question, after answering, you can interact with an <span style={{color: '#004a77', fontWeight: 600}}>AI assistant 🤖</span> if you have any queries or need clarification about the question.</span>
         </div>
         <div style={{marginBottom: 32}}>
           <span style={{fontWeight: 600}}>Purpose of the Study:</span>
           <span> This study aims to help users reflect on their smartphone usage habits and determine whether their behavior may indicate signs of problematic use or smartphone addiction based on their responses.</span>
         </div>
         <div style={{display: "flex", justifyContent: "space-between", marginTop: 30, flexWrap: "wrap", gap: 12}}>
-          <button onClick={onBack} style={{padding: "12px 32px", fontSize: "clamp(1rem, 2vw, 1.1rem)", borderRadius: 8, border: "none", background: "#bbb", color: "#fff", cursor: "pointer", fontWeight: 600, boxShadow: "0 2px 8px #e3f2fd", flex: 1, minWidth: 120, maxWidth: 200}}>Back</button>
-          <button onClick={onContinue} style={{padding: "12px 32px", fontSize: "clamp(1rem, 2vw, 1.1rem)", borderRadius: 8, border: "none", background: "#1976d2", color: "#fff", cursor: "pointer", fontWeight: "bold", boxShadow: "0 2px 8px #e3f2fd", flex: 1, minWidth: 120, maxWidth: 200}}>Continue</button>
+          <button onClick={onBack} style={{padding: "12px 32px", fontSize: "clamp(1rem, 2vw, 1.1rem)", borderRadius: 8, borderWidth : "1px", background: "#bbb", color: "#fff", cursor: "pointer", fontWeight: 600, boxShadow: "0 2px 8px #e3f2fd", flex: 1, minWidth: 120, maxWidth: 200}}>Back</button>
+          <button onClick={onContinue} style={{padding: "12px 32px", fontSize: "clamp(1rem, 2vw, 1.1rem)", borderRadius: 8, border: "none", background: "#004a77", color: "#fff", cursor: "pointer", fontWeight: "bold", boxShadow: "0 2px 8px #e3f2fd", flex: 1, minWidth: 120, maxWidth: 200}}>Continue</button>
         </div>
       </div>
       <style>{`

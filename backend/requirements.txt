@@ -6,3 +6,8 @@ pydantic
 uvicorn
 python-dotenv
 requests
+transformers==4.42.4
+accelerate>=0.31.0
+peft>=0.11.1
+bitsandbytes>=0.43.1; platform_system != "Windows"
+torch>=2.3.0

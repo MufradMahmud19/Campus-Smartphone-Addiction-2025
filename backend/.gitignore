@@ -4,6 +4,8 @@ __pycache__/
 *.pyo
 *.pyd
 
+.venv/
+
 # Node.js (if using)
 node_modules/
 

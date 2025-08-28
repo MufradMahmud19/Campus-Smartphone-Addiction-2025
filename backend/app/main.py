@@ -6,6 +6,17 @@ from sqlalchemy.orm import Session
 from .database import engine, get_db, test_connection
 from .question_manager import question_manager
 from . import models, schemas
+from pydantic import BaseModel, Field
+from typing import List, Optional
+import os
+
+# LLM runtime helpers
+try:
+    from .llm_runtime import load_model as _load_llm_model, generate_text as _llm_generate_text, chat_completion as _llm_chat_completion
+    _llm_available = True
+except Exception as e:
+    print(f"[LLM] Runtime not available at import: {e}")
+    _llm_available = False
 
 app = FastAPI()
 
@@ -64,6 +75,14 @@ async def startup_event():
         
     except Exception as e:
         print(f"  Startup warning: {e}")
+
+    # Warm LLM (non-fatal if missing)
+    try:
+        if _llm_available:
+            _load_llm_model()
+            print("🤖 LLM model preloaded successfully")
+    except Exception as e:
+        print(f"[LLM warmup] Failed to preload model: {e}")
 
 # Note: Questions are automatically synced from config file on startup
 # Make sure to run 'python recreate_tables.py' first to create tables
@@ -300,3 +319,76 @@ def get_risk_radar():
 def get_percentiles():
     """Get percentile data for peer comparison"""
     return {"message": "Percentile feature coming soon!"}
+
+
+# ================= LLM endpoints =================
+
+class GenerateRequest(BaseModel):
+    prompt: str
+    max_new_tokens: Optional[int] = Field(default=None)
+    temperature: Optional[float] = Field(default=None)
+    top_p: Optional[float] = Field(default=None)
+    top_k: Optional[int] = Field(default=None)
+    repetition_penalty: Optional[float] = Field(default=None)
+    do_sample: Optional[bool] = Field(default=False)
+
+
+class ChatMessage(BaseModel):
+    role: str
+    content: str
+
+
+class ChatRequest(BaseModel):
+    messages: List[ChatMessage]
+    max_new_tokens: Optional[int] = None
+    temperature: Optional[float] = None
+    top_p: Optional[float] = None
+    top_k: Optional[int] = None
+    repetition_penalty: Optional[float] = None
+    do_sample: Optional[bool] = False
+
+
+@app.get("/health")
+def health():
+    return {
+        "status": "ok",
+        "base_model": os.getenv("BASE_MODEL", "mistralai/Mistral-7B-Instruct-v0.3"),
+        "adapter_dir": os.getenv("ADAPTER_DIR", "./backend/modelsllm"),
+        "llm_available": _llm_available,
+    }
+
+
+@app.post("/v1/generate")
+def v1_generate(req: GenerateRequest):
+    if not _llm_available:
+        raise HTTPException(status_code=503, detail="LLM runtime is not available")
+    text = _llm_generate_text(
+        prompt=req.prompt,
+        max_new_tokens=req.max_new_tokens,
+        temperature=req.temperature,
+        top_p=req.top_p,
+        top_k=req.top_k,
+        repetition_penalty=req.repetition_penalty,
+        do_sample=req.do_sample,
+    )
+    return {"text": text}
+
+
+@app.post("/v1/chat")
+def v1_chat(req: ChatRequest):
+    if not _llm_available:
+        raise HTTPException(status_code=503, detail="LLM runtime is not available")
+    msgs = [
+        (m.model_dump() if hasattr(m, "model_dump") else m.dict())
+        for m in req.messages
+    ]
+    text = _llm_chat_completion(
+        messages=msgs,
+        max_new_tokens=req.max_new_tokens,
+        temperature=req.temperature,
+        top_p=req.top_p,
+        top_k=req.top_k,
+        repetition_penalty=req.repetition_penalty,
+        do_sample=req.do_sample,
+    )
+    return {"text": text}

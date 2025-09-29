@@ -6,15 +6,6 @@ __pycache__/
 
 .venv/
 
-# Ignore the whole directory
-modelsllm/*
-
-# But keep the directory itself (so Git can see inside)
-!modelsllm/
-
-# And keep this specific file
-!modelsllm/README.md
-
 # Node.js (if using)
 node_modules/
 

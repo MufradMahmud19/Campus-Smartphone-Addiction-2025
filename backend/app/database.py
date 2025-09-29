@@ -1,5 +1,5 @@
 import os
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
@@ -42,10 +42,13 @@ def get_db():
         db.close()
 
 # Test database connection
+
 def test_connection():
     try:
         with engine.connect() as connection:
-            result = connection.execute("SELECT 1")
+            # either of these is fine in SQLAlchemy 2.x:
+            # connection.execute(text("SELECT 1"))
+            connection.exec_driver_sql("SELECT 1")
             print(" Database connection successful!")
             return True
     except Exception as e:

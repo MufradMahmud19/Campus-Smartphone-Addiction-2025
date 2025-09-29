@@ -1,31 +1,70 @@
+from typing import List, Optional
 from sqlalchemy.orm import Session
-from . import models, schemas
+from datetime import datetime
+from . import models
 
-def create_answer(db: Session, answer: schemas.AnswerCreate):
-    db_answer = models.Answer(**answer.dict())
-    db.add(db_answer)
+# ---- UserChat ----
+def create_user_chat(
+    db: Session,
+    *,
+    usercode: Optional[str],
+    user_message: str,
+    ai_response: str,
+    model_id: Optional[str],
+    endpoint: Optional[str],
+    tokens_in: int,
+    tokens_out: int,
+    latency_ms: int,
+    session_no: int
+) -> models.UserChat:
+    rec = models.UserChat(
+        usercode=usercode,
+        user_message=user_message,
+        ai_response=ai_response,
+        model_id=model_id or models.UserChat.model_id.default.arg,
+        endpoint=endpoint or models.UserChat.endpoint.default.arg,
+        tokens_in=tokens_in,
+        tokens_out=tokens_out,
+        latency_ms=latency_ms,
+        session_no=session_no,
+        created_time=datetime.utcnow(),
+    )
+    db.add(rec)
     db.commit()
-    db.refresh(db_answer)
-    return db_answer
+    db.refresh(rec)
+    return rec
 
-def get_answer(db: Session, answer_id: int):
-    return db.query(models.Answer).filter(models.Answer.id == answer_id).first()
+def list_user_chats(db: Session, usercode: str, *, session_no: Optional[int] = None, limit: int = 200) -> List[models.UserChat]:
+    q = db.query(models.UserChat).filter(models.UserChat.usercode == usercode)
+    if session_no is not None:
+        q = q.filter(models.UserChat.session_no == session_no)
+    return q.order_by(models.UserChat.created_time.desc()).limit(limit).all()
 
-def get_answers(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Answer).offset(skip).limit(limit).all()
+# ---- UserFeedback ----
+def create_user_feedback(
+    db: Session,
+    *,
+    usercode: str,
+    question_id: int,
+    feedback_text: str,
+    feedback_type: str = "general",
+    session_no: int
+) -> models.UserFeedback:
+    rec = models.UserFeedback(
+        usercode=usercode,
+        question_id=question_id,
+        feedback_text=feedback_text,
+        feedback_type=feedback_type,
+        session_no=session_no,
+        created_time=datetime.utcnow(),
+    )
+    db.add(rec)
+    db.commit()
+    db.refresh(rec)
+    return rec
 
-def update_answer(db: Session, answer_id: int, answer: schemas.AnswerUpdate):
-    db_answer = db.query(models.Answer).filter(models.Answer.id == answer_id).first()
-    if db_answer:
-        for key, value in answer.dict(exclude_unset=True).items():
-            setattr(db_answer, key, value)
-        db.commit()
-        db.refresh(db_answer)
-    return db_answer
-
-def delete_answer(db: Session, answer_id: int):
-    db_answer = db.query(models.Answer).filter(models.Answer.id == answer_id).first()
-    if db_answer:
-        db.delete(db_answer)
-        db.commit()
-    return db_answer
+def list_user_feedback(db: Session, usercode: str, *, session_no: Optional[int] = None, limit: int = 200) -> List[models.UserFeedback]:
+    q = db.query(models.UserFeedback).filter(models.UserFeedback.usercode == usercode)
+    if session_no is not None:
+        q = q.filter(models.UserFeedback.session_no == session_no)
+    return q.order_by(models.UserFeedback.created_time.desc()).limit(limit).all()

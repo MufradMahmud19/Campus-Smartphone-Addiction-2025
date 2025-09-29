@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from "react";
 
-export function WizardStep({ question, value, onChange, conversation, onSendChat, showChat, onSubmit, onBack, onNext, isLastStep, isSubmitted, question_id, showNavigation = true }) {
+export function WizardStep({ question, value, onChange, conversation, onSendChat, showChat, onSubmit, onBack, onNext, isLastStep, isSubmitted, question_id, showNavigation = true, disablePrev = false, disableNext = false }) {
+  const scaleLabels = {
+    1: "Strongly disagree",
+    2: "Disagree",
+    3: "Weakly disagree",
+    4: "Weakly agree",
+    5: "Agree",
+    6: "Strongly agree",
+  };
+
   return (
     <div style={{ 
       padding: 20, 
@@ -24,6 +33,7 @@ export function WizardStep({ question, value, onChange, conversation, onSendChat
           max={6}
           value={value}
           onChange={e => onChange(Number(e.target.value))}
+          aria-valuetext={scaleLabels[value]}
           style={{ 
             width: "100%",
             height: "8px",
@@ -33,7 +43,10 @@ export function WizardStep({ question, value, onChange, conversation, onSendChat
           }}
         />
         <div style={{ textAlign: "center", marginTop: 12, fontSize: 16 }}>
-          Answer: <b style={{ color: "#1d587dff" }}>{value}</b>
+          Answer:{" "}
+          <b style={{ color: "#1d587dff" }}>
+            {value} - {scaleLabels[value] || ""}
+          </b>
         </div>
         {/* Submit button - only show if not submitted */}
         {!isSubmitted && (
@@ -69,21 +82,23 @@ export function WizardStep({ question, value, onChange, conversation, onSendChat
       {/* Navigation buttons - only show if showNavigation is true */}
       {showNavigation && (
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 20 }}>
-          <button 
+          <button
             onClick={onBack}
+            disabled={disablePrev}
             style={{
               padding: "10px 15px",
               fontSize: "18px",
-              backgroundColor: "#f0f0f0",
+              backgroundColor: disablePrev ? "#cccccc" : "#f0f0f0",
               color: "#333",
               border: "none",
               borderRadius: "8px",
-              cursor: "pointer",
+              cursor: disablePrev ? "not-allowed" : "pointer",
               transition: "all 0.3s ease",
-              fontWeight: "bold"
+              fontWeight: "bold",
+              opacity: disablePrev ? 0.6 : 1
             }}
             onMouseOver={(e) => {
-              e.target.style.backgroundColor = "#e0e0e0";
+              if (!disablePrev) e.target.style.backgroundColor = "#e0e0e0";
             }}
             onMouseOut={(e) => {
               e.target.style.backgroundColor = "#f0f0f0";
@@ -92,22 +107,26 @@ export function WizardStep({ question, value, onChange, conversation, onSendChat
             ←
           </button>
           {!isLastStep && (
-            <button 
+            <button
               onClick={onNext}
+              disabled={disableNext || isLastStep}
               style={{
                 padding: "10px 15px",
                 fontSize: "18px",
-                backgroundColor: "#4e4cafff",
+                backgroundColor: (disableNext || isLastStep) ? "#cccccc" : "#4e4cafff",
                 color: "white",
                 border: "none",
                 borderRadius: "8px",
-                cursor: "pointer",
+                cursor: (disableNext || isLastStep) ? "not-allowed" : "pointer",
                 transition: "all 0.3s ease",
-                fontWeight: "bold"
+                fontWeight: "bold",
+                opacity: (disableNext || isLastStep) ? 0.6 : 1
               }}
               onMouseOver={(e) => {
-                e.target.style.transform = "translateY(-2px)";
-                e.target.style.boxShadow = "0 4px 15px #4e4cafff";
+                if (!(disableNext || isLastStep)) {
+                  e.target.style.transform = "translateY(-2px)";
+                  e.target.style.boxShadow = "0 4px 15px #4e4cafff";
+                }
               }}
               onMouseOut={(e) => {
                 e.target.style.transform = "translateY(0)";

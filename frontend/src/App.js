@@ -5,6 +5,7 @@ import SurveyInstructionsPage from "./components/SurveyInstructionsPage";
 import HelpModal from "./components/HelpModal";
 import AnswerDistributionChart from "./components/AnswerDistributionChart";
 import LLMChatBox from "./components/LLMChatBox";
+import { startSession, answerFeedback as fetchAnswerFeedback, chatLLM as callChatLLM, finalSurveyFeedback, submitSurvey } from "./api";
 
 // Add global style for body background and improved card/header separation
 if (typeof window !== 'undefined') {
@@ -27,12 +28,13 @@ if (typeof window !== 'undefined') {
     }
     .responsive-header {
       width: 100vw;
-      max-width: 650px;
+      max-width: 680px;
       min-height: 60px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 24px 24px 0 24px;
+      // padding: 24px 24px 0 24px;
+      padding-top: 24px;
       box-sizing: border-box;
       position: relative;
       z-index: 2;
@@ -97,7 +99,7 @@ if (typeof window !== 'undefined') {
 }
 
 // Home logo component
-function HomeLogo({ onHome, disabled }) {
+function HomeLogo({ onHome, disabled, style = {} }) {
   return (
     <img
       src={require('./img/icon_2.png')}
@@ -106,9 +108,10 @@ function HomeLogo({ onHome, disabled }) {
         width: 40, 
         cursor: disabled ? "not-allowed" : "pointer", 
         opacity: disabled ? 0.5 : 1,
-        marginRight: 12,
+        // marginRight: 12,
         marginLeft: -40,
-        position: "static"
+        position: "static",
+        ...style
       }}
       onClick={disabled ? undefined : onHome}
       title={disabled ? "You cannot go home while answering the survey." : "Go to homepage"}
@@ -885,7 +888,7 @@ function DemographicsPage({ onSubmit, onBack, usercode }) {
   );
 }
 
-function SurveyCompletionPage({ onReturnHome, usercode, answers }) {
+function SurveyCompletionPage({ onReturnHome, usercode, answers, finalFeedbackText, finishError }) {
   // Calculate the sum of answers
   const score = Array.isArray(answers) ? answers.reduce((a, b) => a + b, 0) : '--';
   return (
@@ -932,6 +935,36 @@ function SurveyCompletionPage({ onReturnHome, usercode, answers }) {
         }}>
           <h3 style={{ margin: "0 0 16px 0", fontSize: "20px", textAlign: "center" }}>Overall Feedback</h3>
           {/* LLM feedback will be inserted here in the future */}
+          {finishError && (
+            <div style={{
+              padding: "12px",
+              backgroundColor: "#fdecea",
+              border: "1px solid #f5c6cb",
+              borderRadius: "8px",
+              color: "#721c24",
+              marginBottom: "10px"
+            }}>
+              {finishError}
+            </div>
+          )}
+
+          {finalFeedbackText ? (
+            <div style={{
+              whiteSpace: "pre-wrap",
+              lineHeight: 1.5,
+              backgroundColor: "#fff",
+              border: "1px solid #e0d3ee",
+              borderRadius: 8,
+              padding: 16
+            }}>
+              {finalFeedbackText}
+            </div>
+          ) : (
+            <div style={{ color: "#666", fontStyle: "italic" }}>
+              No overall feedback available.
+            </div>
+          )}
+
         </div>
 
         {/* User Code Section */}
@@ -1001,6 +1034,11 @@ export default function App() {
   const [answers, setAnswers] = useState([]);
   const [chats, setChats] = useState([]);
   const [surveyCompleted, setSurveyCompleted] = useState(false);
+  // Final feedback + finish state
+  const [finalFeedbackText, setFinalFeedbackText] = useState("");
+  const [finishLoading, setFinishLoading] = useState(false);
+  const [finishError, setFinishError] = useState("");
+
   const [submittedQuestions, setSubmittedQuestions] = useState(new Set());
   const [pendingDemographics, setPendingDemographics] = useState(null);
   const [showHelp, setShowHelp] = useState(false);
@@ -1009,6 +1047,11 @@ export default function App() {
   const [chartLoading, setChartLoading] = useState(false);
   const [chartError, setChartError] = useState(null);
   const [chartKey, setChartKey] = useState(0);
+  // feedback states
+  const [answerFeedbackMap, setAnswerFeedbackMap] = useState({}); // { [qIndex]: string }
+  const [answerFeedbackLoading, setAnswerFeedbackLoading] = useState(false);
+  // chat states
+  const [chatLoadingMap, setChatLoadingMap] = useState({}); // { [qIndex]: true|false }
 
   useEffect(() => {
     axios.get("http://localhost:8000/questions")
@@ -1117,20 +1160,59 @@ export default function App() {
   );
   if (page === 3.5) return (
     <SurveyInstructionsPage
+      // onContinue={async () => {
+      //   if (pendingDemographics) {
+      //     try {
+      //       console.log("Registering user with data:", pendingDemographics);
+      //       const res = await axios.post("http://localhost:8000/register", pendingDemographics);
+      //       console.log("Registration response:", res.data);
+      //       setUsercode(res.data.usercode);
+      //       setPendingDemographics(null);
+      //       setPage(4);
+      //     } catch (error) {
+      //       console.error("Registration error:", error.response?.data || error.message);
+      //       alert(`Error registering user: ${error.response?.data?.detail || error.message || "Please try again."}`);
+      //     }
+      //   } else {
+      //     setPage(4);
+      //   }
+      // }}
       onContinue={async () => {
         if (pendingDemographics) {
+          // First-time user: register, then start session
           try {
             console.log("Registering user with data:", pendingDemographics);
             const res = await axios.post("http://localhost:8000/register", pendingDemographics);
             console.log("Registration response:", res.data);
-            setUsercode(res.data.usercode);
+            const newCode = res.data.usercode;
+            setUsercode(newCode);
             setPendingDemographics(null);
-            setPage(4);
+
+            // NEW: mark/update session start time for this user
+            try {
+              await startSession(newCode);
+            } catch (err) {
+              console.error("Failed to start session:", err?.response?.data || err.message);
+              // non-fatal; continue to questions even if this fails
+            }
+
+            setPage(4); // go to wizard
           } catch (error) {
             console.error("Registration error:", error.response?.data || error.message);
             alert(`Error registering user: ${error.response?.data?.detail || error.message || "Please try again."}`);
           }
         } else {
+          // Returning user: start session with existing usercode
+          if (!usercode) {
+            alert("User code is missing. Please go back and enter your code.");
+            return;
+          }
+          try {
+            await startSession(usercode);
+          } catch (err) {
+            console.error("Failed to start session:", err?.response?.data || err.message);
+            // non-fatal; continue to questions even if this fails
+          }
           setPage(4);
         }
       }}
@@ -1139,8 +1221,19 @@ export default function App() {
   );
 
   // Survey completion page
+  // if (surveyCompleted) {
+  //   return <SurveyCompletionPage onReturnHome={() => { setSurveyCompleted(false); setPage(0); }} usercode={usercode} answers={answers} />;
+  // }
   if (surveyCompleted) {
-    return <SurveyCompletionPage onReturnHome={() => { setSurveyCompleted(false); setPage(0); }} usercode={usercode} answers={answers} />;
+    return (
+      <SurveyCompletionPage
+        onReturnHome={() => { setSurveyCompleted(false); setPage(0); }}
+        usercode={usercode}
+        answers={answers}
+        finalFeedbackText={finalFeedbackText}
+        finishError={finishError}
+      />
+    );
   }
 
   // Wizard logic
@@ -1163,6 +1256,12 @@ export default function App() {
   const validStep = Math.max(0, Math.min(step, steps.length - 1));
   const current = steps[validStep];
   const currentQuestionNumber = current ? current.questionNumber : 1;
+
+  // Block navigation after submit until LLM feedback is shown for the current question
+  const navBlocked =
+    current &&
+    submittedQuestions.has(current.qIndex) &&
+    (answerFeedbackLoading || !answerFeedbackMap[current.qIndex]);
   
   // Update step if it was out of bounds
   if (validStep !== step) {
@@ -1181,39 +1280,42 @@ export default function App() {
           boxShadow: "0 2px 8px #e3f2fd",
           display: "flex",
           alignItems: "center",
-          padding: "10px 0 10px 0", // Remove left/right padding so Home icon is fully inside
-          maxWidth: current && submittedQuestions.has(current.qIndex) ? "1200px" : "650px",
+          padding: "10px", // Remove left/right padding so Home icon is fully inside
+          maxWidth: current && submittedQuestions.has(current.qIndex) ? "1200px" : "750px",
           margin: "0 auto",
           width: "100%",
           borderRadius: "10px"
         }}
       >
-        <HomeLogo onHome={() => setPage(0)} disabled={true} style={{ marginLeft: 0 }} />
+        {/* <HomeLogo onHome={() => setPage(0)} disabled={true} style={{ marginLeft: 0 }} /> */}
         {/* Progress Bar and Help in a flex row with constant gap */}
-        <div style={{ display: "flex", alignItems: "center", gap: 16, flex: 1, marginLeft: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 16, flex: 1
+          // , marginLeft: 12 
+          }}>
           {/* Progress Bar with Navigation and Help */}
+          <HomeLogo onHome={() => setPage(0)} disabled={true} style={{ marginLeft: 0 }} />
           <div style={{ display: "flex", alignItems: "center", flex: 1, gap: 16 }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
               <button
                 onClick={prevStep}
-                disabled={step === 0}
+                disabled={step === 0 || navBlocked}
                 style={{
-                  padding: "8px 12px",
-                  fontSize: "18px",
-                  backgroundColor: step === 0 ? "#cccccc" : "#4CAF50",
+                  paddingBottom: "10px",
+                  fontSize: "25px",
+                  backgroundColor: (step === 0 || navBlocked) ? "#cccccc" : "#4CAF50",
                   color: "white",
                   border: "none",
                   borderRadius: "6px",
-                  cursor: step === 0 ? "not-allowed" : "pointer",
+                  cursor: (step === 0 || navBlocked) ? "not-allowed" : "pointer",
                   transition: "all 0.3s ease",
                   fontWeight: "bold",
-                  opacity: step === 0 ? 0.5 : 1,
+                  opacity: (step === 0 || navBlocked) ? 0.5 : 1,
                   minWidth: 44,
                   marginBottom: 2,
                   paddingRight: 10
                 }}
                 onMouseOver={(e) => {
-                  if (step !== 0) {
+                  if (!(step === 0 || navBlocked)) {
                     e.target.style.transform = "translateY(-2px)";
                     e.target.style.boxShadow = "0 4px 15px rgba(76, 175, 80, 0.3)";
                   }
@@ -1263,23 +1365,43 @@ export default function App() {
                 </div>
                 <button
                   onClick={nextStep}
-                  disabled={!submittedQuestions.has(current.qIndex) || step === steps.length - 1}
+                  disabled={
+                    !submittedQuestions.has(current.qIndex) ||
+                    step === steps.length - 1 ||
+                    navBlocked
+                  }
                   style={{
-                    padding: "8px 12px",
-                    fontSize: "18px",
-                    backgroundColor: (!submittedQuestions.has(current.qIndex) || step === steps.length - 1) ? "#cccccc" : "#4CAF50",
+                    paddingBottom: "10px",
+                    fontSize: "25px",
+                    backgroundColor: (
+                      !submittedQuestions.has(current.qIndex) ||
+                      step === steps.length - 1 ||
+                      navBlocked
+                    ) ? "#cccccc" : "#4CAF50",
                     color: "white",
                     border: "none",
                     borderRadius: "6px",
-                    cursor: (!submittedQuestions.has(current.qIndex) || step === steps.length - 1) ? "not-allowed" : "pointer",
+                    cursor: (
+                      !submittedQuestions.has(current.qIndex) ||
+                      step === steps.length - 1 ||
+                      navBlocked
+                    ) ? "not-allowed" : "pointer",
                     transition: "all 0.3s ease",
                     fontWeight: "bold",
-                    opacity: (!submittedQuestions.has(current.qIndex) || step === steps.length - 1) ? 0.5 : 1,
+                    opacity: (
+                      !submittedQuestions.has(current.qIndex) ||
+                      step === steps.length - 1 ||
+                      navBlocked
+                    ) ? 0.5 : 1,
                     minWidth: 35,
-                    marginLeft: "10px" // Consistent gap
+                    marginLeft: "10px"
                   }}
                   onMouseOver={(e) => {
-                    if (submittedQuestions.has(current.qIndex) && step !== steps.length - 1) {
+                    if (
+                      submittedQuestions.has(current.qIndex) &&
+                      step !== steps.length - 1 &&
+                      !navBlocked
+                    ) {
                       e.target.style.transform = "translateY(-2px)";
                       e.target.style.boxShadow = "0 4px 15px rgba(76, 175, 80, 0.3)";
                     }
@@ -1387,29 +1509,82 @@ export default function App() {
                    conversation={chats[current.qIndex] || []}
                    onSendChat={handleSendChat}
                    showChat={false}
-                    onSubmit={() => {
-                     // Mark this question as submitted
-                     setSubmittedQuestions(prev => new Set([...prev, current.qIndex]));
-                     // Show feedback after submitting
-                     setChats(current => 
-                       current.map((c, i) => 
-                         i === current.qIndex 
-                           ? [{ role: "AI", text: `Thank you for your answer! Your response was ${answers[current.qIndex]}/6. Is there anything you'd like to discuss about this question?` }]
-                           : c
-                       )
-                     );
-                      // Immediately refresh chart and force re-render keyed by current answer
-                      if (current.question_id) {
-                        fetchChartData(current.question_id);
-                        setChartKey(k => k + 1);
-                      }
-                   }}
+                  //   onSubmit={() => {
+                  //    // Mark this question as submitted
+                  //    setSubmittedQuestions(prev => new Set([...prev, current.qIndex]));
+                  //    // Show feedback after submitting
+                  //    setChats(current => 
+                  //      current.map((c, i) => 
+                  //        i === current.qIndex 
+                  //          ? [{ role: "AI", text: `Thank you for your answer! Your response was ${answers[current.qIndex]}/6. Is there anything you'd like to discuss about this question?` }]
+                  //          : c
+                  //      )
+                  //    );
+                  //     // Immediately refresh chart and force re-render keyed by current answer
+                  //     if (current.question_id) {
+                  //       fetchChartData(current.question_id);
+                  //       setChartKey(k => k + 1);
+                  //     }
+                  //  }}
+                   onSubmit={async () => {
+                    // snapshot values to avoid stale closures across awaits
+                    const qIdx = current.qIndex;
+                    const qId = current.question_id;
+                    const qText = current.question;
+                    const ans = answers[qIdx];
+
+                    // 1) Mark this question as submitted (so Graph + Feedback containers show)
+                    setSubmittedQuestions(prev => new Set([...prev, qIdx]));
+
+                    // 2) Optional local message (kept as-is)
+                    setChats(curr =>
+                      curr.map((c, i) =>
+                        i === qIdx
+                          ? [{ role: "AI", text: `Thank you for your answer! Your response was ${ans}/6. Is there anything you'd like to discuss about this question?` }]
+                          : c
+                      )
+                    );
+
+                    // 3) Refresh distribution chart
+                    if (qId) {
+                      fetchChartData(qId);
+                      setChartKey(k => k + 1);
+                    }
+
+                    // 4) 🔗 Call backend to get LLM per-answer feedback
+                    if (!usercode) return; // safety
+                    try {
+                      setAnswerFeedbackLoading(true);
+                      const resp = await fetchAnswerFeedback({
+                        usercode,
+                        survey_id: "sas-sv-10",
+                        question_id: qId,
+                        question_text: qText,
+                        answer: ans,
+                        max_new_tokens: 220,
+                        temperature: 0.2
+                      });
+                      setAnswerFeedbackMap(prev => ({ ...prev, [qIdx]: resp?.text || "" }));
+                    } catch (err) {
+                      console.error("answer_feedback error:", err?.response?.data || err.message);
+                      setAnswerFeedbackMap(prev => ({ ...prev, [qIdx]: "Sorry—couldn't fetch feedback right now." }));
+                    } finally {
+                      setAnswerFeedbackLoading(false);
+                    }
+                  }}
+
                    onBack={prevStep}
                    onNext={nextStep}
                    isLastStep={step === steps.length - 1}
                    isSubmitted={submittedQuestions.has(current.qIndex)}
                    question_id={current.question_id}
                    showNavigation={false} // Hide navigation buttons in WizardStep since we have them in the progress bar
+                   disablePrev={step === 0 || navBlocked}
+                   disableNext={
+                    !submittedQuestions.has(current.qIndex) ||
+                    step === steps.length - 1 ||
+                    navBlocked
+                   }
                  />
                )}
              </div>
@@ -1492,7 +1667,7 @@ export default function App() {
                    {/* Finish Survey Button (only on last page) */}
                    {current && step === steps.length - 1 && submittedQuestions.has(current.qIndex) && (
                      <div style={{ marginTop: 30, textAlign: "center" }}>
-                       <button 
+                       {/* <button 
                          onClick={handleFinishSurvey}
                          style={{ 
                            padding: "15px 30px", 
@@ -1516,7 +1691,50 @@ export default function App() {
                          }}
                        >
                          Finish Survey
-                       </button>
+                       </button> */}
+                        <button
+                          onClick={handleFinishSurvey}
+                          // Enable only when feedback for the last question exists and is not loading
+                          disabled={finishLoading || answerFeedbackLoading || !answerFeedbackMap[current.qIndex]}
+                          style={{
+                            padding: "15px 30px",
+                            fontSize: "18px",
+                            backgroundColor:
+                              (finishLoading || answerFeedbackLoading || !answerFeedbackMap[current.qIndex])
+                                ? "#7a8da0"            // disabled look until feedback shows
+                                : "#004a77",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "8px",
+                            cursor:
+                              (finishLoading || answerFeedbackLoading || !answerFeedbackMap[current.qIndex])
+                                ? "not-allowed"
+                                : "pointer",
+                            boxShadow: "0 4px 15px #004a77",
+                            transition: "all 0.3s ease",
+                            fontWeight: "bold"
+                          }}
+                          onMouseOver={(e) => {
+                            if (!(finishLoading || answerFeedbackLoading || !answerFeedbackMap[current.qIndex])) {
+                              e.target.style.transform = "translateY(-2px)";
+                              e.target.style.boxShadow = "0 6px 20px #004a77";
+                            }
+                          }}
+                          onMouseOut={(e) => {
+                            e.target.style.transform = "translateY(0)";
+                            e.target.style.boxShadow = "0 4px 15px #004a77";
+                          }}
+                        >
+                          {finishLoading ? "Finishing…" : "Finish Survey"}
+                        </button>
+
+                        {/* Optional helper text so users know why it’s disabled */}
+                        {step === steps.length - 1 &&
+                        (answerFeedbackLoading || !answerFeedbackMap[current.qIndex]) && (
+                          <div style={{ marginTop: 8, color: "#666", fontSize: 13 }}>
+                            Finish will be enabled after your personalized feedback appears.
+                          </div>
+                        )}
                      </div>
                    )}
                  </div>
@@ -1527,7 +1745,7 @@ export default function App() {
           {/* Container 3: Feedback Section - Only show after submit, positioned outside main wrapper */}
           {current && submittedQuestions.has(current.qIndex) && (
             <div style={{ 
-              width: "300px",
+              width: "450px",
               padding: "20px",
               backgroundColor: "white",
               borderRadius: "12px",
@@ -1548,6 +1766,37 @@ export default function App() {
                   You have answered question {currentQuestionNumber} with a score of {answers[current.qIndex]}/6.
                 </p>
               </div>
+              
+               {/* LLM Feedback Section */}
+              {answerFeedbackLoading && (
+                <div style={{
+                  padding: "12px",
+                  backgroundColor: "#fffbe6",
+                  border: "1px solid #ffe58f",
+                  borderRadius: "8px",
+                  marginBottom: "12px",
+                  fontSize: "14px",
+                  color: "#8c6d1f"
+                }}>
+                  Generating personalized feedback…
+                </div>
+              )}
+
+              {answerFeedbackMap[current.qIndex] && (
+                <div style={{
+                  padding: "15px",
+                  backgroundColor: "#eef9ff",
+                  borderRadius: "8px",
+                  border: "1px solid #cfe8ff",
+                  marginBottom: "15px",
+                  whiteSpace: "pre-wrap"
+                }}>
+                  <p style={{ margin: 0, color: "#333" }}>
+                    {answerFeedbackMap[current.qIndex]}
+                  </p>
+                </div>
+              )}
+              {/* end LLM Feedback Section  */}
               
                              {/* Start Chat Button */}
                <button
@@ -1580,9 +1829,10 @@ export default function App() {
                {showChatBox[current.qIndex] && (
                  <div style={{ marginTop: "16px" }}>
                    <h3 style={{ margin: "0 0 15px 0", color: "#333", fontSize: "18px" }}>Chat with AI</h3>
-                   <LLMChatBox 
-                     conversation={chats[current.qIndex] || []} 
-                     onSend={handleSendChat} 
+                   <LLMChatBox
+                    conversation={chats[current.qIndex] || []} 
+                    onSend={handleSendChat}
+                    isLoading={!!chatLoadingMap[current.qIndex]}
                    />
                  </div>
                )}
@@ -1594,15 +1844,109 @@ export default function App() {
   );
 
   // --- handlers ---
-  function handleSendChat(message) {
+  // function handleSendChat(message) {
+  //   const qIdx = steps[step].qIndex;
+  //   setChats(current =>
+  //     current.map((c, i) =>
+  //       i === qIdx
+  //         ? [...c, { role: "User", text: message }, { role: "AI", text: "Placeholder LLM response." }]
+  //         : c
+  //     )
+  //   );
+  // }
+  async function handleSendChat(message) {
     const qIdx = steps[step].qIndex;
-    setChats(current =>
-      current.map((c, i) =>
-        i === qIdx
-          ? [...c, { role: "User", text: message }, { role: "AI", text: "Placeholder LLM response." }]
-          : c
+
+    // 1) Optimistically append the user's message (lowercase 'user' so LLMChatBox styles it correctly)
+    setChats(curr =>
+      curr.map((c, i) =>
+        i === qIdx ? [...c, { role: "user", text: message }] : c
       )
     );
+
+    // 2) Mark loading for this question's chat
+    setChatLoadingMap(curr => ({ ...curr, [qIdx]: true }));
+
+    try {
+      // 3) Build the message list your backend expects
+      //    Start with an optional system prompt and include the existing history for this question.
+      // const history = chats[qIdx] || [];
+      // const toApi = [
+      //   { role: "system", content: "You are helpful." },
+      //   ...history.map(m => ({
+      //     role: m.role === "user" || m.role === "User" ? "user" : "assistant",
+      //     content: m.text
+      //   })),
+      //   { role: "user", content: message }
+      // ];
+      const history = chats[qIdx] || [];
+
+      // Map UI history to API roles
+      let mapped = history.map(m => ({
+        role: (m.role === "user" || m.role === "User") ? "user" : "assistant",
+        content: m.text
+      }));
+
+      // 1) Drop leading assistants so the first non-system role is 'user'
+      while (mapped.length > 0 && mapped[0].role === "assistant") {
+        mapped.shift();
+      }
+
+      // 2) Ensure history does not end with 'user' (we're about to append a new user turn)
+      if (mapped.length > 0 && mapped[mapped.length - 1].role === "user") {
+        mapped.pop();
+      }
+
+      // 3) Remove any accidental consecutive same-role items (safety)
+      const cleaned = [];
+      for (const msg of mapped) {
+        if (cleaned.length === 0 || cleaned[cleaned.length - 1].role !== msg.role) {
+          cleaned.push(msg);
+        } else {
+          // If two in a row have the same role, keep the latest content
+          cleaned[cleaned.length - 1] = msg;
+        }
+      }
+
+      // 4) Build final payload: system -> cleaned history -> current user message
+      const toApi = [
+        { role: "system", content: "You are helpful." },
+        ...cleaned,
+        { role: "user", content: message }
+      ];
+
+
+      // 4) Call backend LLM chat API
+      const res = await callChatLLM({
+        usercode,              // tie messages to this user in the backend
+        messages: toApi,
+        max_new_tokens: 256,
+        temperature: 0.2,
+        top_p: 0.9
+      });
+
+      // 5) Append assistant reply
+      const aiText = res?.text || "Sorry — I couldn’t generate a reply.";
+      setChats(curr =>
+        curr.map((c, i) =>
+          i === qIdx ? [...c, { role: "AI", text: aiText }] : c
+        )
+      );
+    } catch (err) {
+      console.error("chat error:", err?.response?.data || err.message);
+      setChats(curr =>
+        curr.map((c, i) =>
+          i === qIdx ? [...c, { role: "AI", text: "Sorry — something went wrong reaching the assistant." }] : c
+        )
+      );
+    } finally {
+      // 6) Clear loading state
+      setChatLoadingMap(curr => {
+        const copy = { ...curr };
+        delete copy[qIdx];
+        return copy;
+      });
+    }
   }
 
   function handleAnswerChange(val) {
@@ -1617,7 +1961,14 @@ export default function App() {
         newSet.delete(qIdx);
         return newSet;
       });
+      
     }
+    // Also clear any old LLM feedback for this question
+      setAnswerFeedbackMap(prev => {
+        const copy = { ...prev };
+        delete copy[qIdx];
+        return copy;
+      });
     // Force chart re-render when answer changes
     setChartKey(k => k + 1);
   }
@@ -1638,23 +1989,70 @@ export default function App() {
     return answersDict;
   }
 
-  function handleFinishSurvey() {
-    const surveyData = {
-      usercode: usercode,
-      answers: createAnswersDictionary(),
-      completed_at: new Date().toISOString()
-    };
+  // function handleFinishSurvey() {
+  //   const surveyData = {
+  //     usercode: usercode,
+  //     answers: createAnswersDictionary(),
+  //     completed_at: new Date().toISOString()
+  //   };
 
-    // Send to backend
-    axios.post("http://localhost:8000/submit_survey", surveyData)
-      .then(response => {
-        console.log("Survey submitted successfully:", response.data);
-        setSurveyCompleted(true);
-      })
-      .catch(error => {
-        console.error("Error submitting survey:", error);
-        // Still show completion page even if backend fails
-        setSurveyCompleted(true);
+  //   // Send to backend
+  //   axios.post("http://localhost:8000/submit_survey", surveyData)
+  //     .then(response => {
+  //       console.log("Survey submitted successfully:", response.data);
+  //       setSurveyCompleted(true);
+  //     })
+  //     .catch(error => {
+  //       console.error("Error submitting survey:", error);
+  //       // Still show completion page even if backend fails
+  //       setSurveyCompleted(true);
+  //     });
+  // }
+
+  async function handleFinishSurvey() {
+    if (!usercode) {
+      alert("User code missing. Please go back and enter your code.");
+      return;
+    }
+
+    // Build all_answers for LLM final feedback
+    const all_answers = questions.slice(0, 10).map((q, i) => ({
+      question_id: q.id,
+      question: q.text,
+      answer: String(answers[i] ?? "") // LLM example shows answer as string
+    }));
+
+    // Build answers map for persistence (/submit_survey)
+    const answersMap = {};
+    questions.slice(0, 10).forEach((q, i) => {
+      answersMap[q.id] = answers[i];
+    });
+
+    setFinishLoading(true);
+    setFinishError("");
+    try {
+      // 1) Get overall feedback from LLM
+      const ff = await finalSurveyFeedback({
+        usercode,
+        survey_id: "sas-sv-10",
+        all_answers,
+        // optionally include demographics summary if you have it; otherwise leave ""
+        summary_of_user: ""
       });
+      setFinalFeedbackText(ff?.text || "");
+
+      // 2) Persist survey + increment session + re-tag sessions for chats/feedback
+      await submitSurvey({ usercode, answersMap });
+
+      // 3) Show completion page
+      setSurveyCompleted(true);
+    } catch (err) {
+      console.error("Finish survey error:", err?.response?.data || err.message);
+      setFinishError(err?.response?.data?.detail || err.message || "Failed to finish survey.");
+      alert(`Failed to finish survey: ${err?.response?.data?.detail || err.message}`);
+    } finally {
+      setFinishLoading(false);
+    }
   }
+
 }
